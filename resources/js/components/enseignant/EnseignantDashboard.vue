@@ -51,24 +51,24 @@
       <div class="col-md-3">
         <div class="card bg-success text-white">
           <div class="card-body text-center">
-            <h4>{{ statistiques.absences_validees || 0 }}</h4>
-            <p class="mb-0">Validées</p>
+            <h4>{{ statistiques.absences_validees_par_moi || 0 }}</h4>
+            <p class="mb-0">Validées par moi</p>
           </div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card bg-danger text-white">
           <div class="card-body text-center">
-            <h4>{{ statistiques.absences_refusees || 0 }}</h4>
-            <p class="mb-0">Refusées</p>
+            <h4>{{ statistiques.absences_refusees_par_moi || 0 }}</h4>
+            <p class="mb-0">Refusées par moi</p>
           </div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card bg-info text-white">
           <div class="card-body text-center">
-            <h4>{{ statistiques.total_absences || 0 }}</h4>
-            <p class="mb-0">Total traitées</p>
+            <h4>{{ statistiques.absences_traitees_par_moi || 0 }}</h4>
+            <p class="mb-0">Traitées par moi</p>
           </div>
         </div>
       </div>
@@ -263,9 +263,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Refuser l'absence</h5>
-            <button type="button" class="close" @click="showRefusModalFlag = false">
-              <span>&times;</span>
-            </button>
+            <button type="button" class="btn-close" @click="showRefusModalFlag = false" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div v-if="selectedAbsence">
@@ -303,9 +301,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Modifier le profil</h5>
-            <button type="button" class="close" @click="showProfilModal = false">
-              <span>&times;</span>
-            </button>
+            <button type="button" class="btn-close" @click="showProfilModal = false" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <form @submit.prevent="modifierProfil">

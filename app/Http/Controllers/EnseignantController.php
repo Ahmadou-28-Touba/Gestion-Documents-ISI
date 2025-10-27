@@ -22,15 +22,57 @@ class EnseignantController extends Controller
             ], 404);
         }
 
-        $statistiques = $enseignant->statistiquesAbsences();
-        
+        $dep = trim((string) $enseignant->departement);
+        $norm = $dep !== '' ? mb_strtolower($dep, 'UTF-8') : null;
+
+        // Absences en attente pour la filière du département
+        $absEnAttente = Absence::with(['etudiant.utilisateur'])
+            ->where('statut', 'en_attente')
+            ->when($norm !== null, function ($q) use ($norm) {
+                $q->whereHas('etudiant', function ($qq) use ($norm) {
+                    $qq->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+                });
+            })
+            ->orderByDesc('date_declaration')
+            ->limit(5)
+            ->get();
+
+        // Absences traitées récemment par cet enseignant
+        $absTraitees = Absence::with(['etudiant.utilisateur'])
+            ->where('enseignant_id', $enseignant->id)
+            ->whereIn('statut', ['validee', 'refusee'])
+            ->orderByDesc('date_traitement')
+            ->limit(5)
+            ->get();
+
+        // Statistiques pour l'enseignant
+        $statistiques = [
+            'absences_en_attente' => Absence::when($norm !== null, function ($q) use ($norm) {
+                    $q->whereHas('etudiant', function ($qq) use ($norm) {
+                        $qq->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+                    });
+                })
+                ->where('statut', 'en_attente')
+                ->count(),
+            'absences_validees_par_moi' => Absence::where('enseignant_id', $enseignant->id)->where('statut', 'validee')->count(),
+            'absences_refusees_par_moi' => Absence::where('enseignant_id', $enseignant->id)->where('statut', 'refusee')->count(),
+            'total_absences' => Absence::when($norm !== null, function ($q) use ($norm) {
+                    $q->whereHas('etudiant', function ($qq) use ($norm) {
+                        $qq->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+                    });
+                })->count(),
+        ];
+
+        // Calcul dérivé
+        $statistiques['absences_traitees_par_moi'] = $statistiques['absences_validees_par_moi'] + $statistiques['absences_refusees_par_moi'];
+
         return response()->json([
             'success' => true,
             'data' => [
                 'enseignant' => $enseignant,
                 'statistiques' => $statistiques,
-                'absences_en_attente' => $enseignant->absencesEnAttente(),
-                'absences_traitees' => $enseignant->absencesTraitees()
+                'absences_en_attente' => $absEnAttente,
+                'absences_traitees' => $absTraitees,
             ]
         ]);
     }
@@ -128,7 +170,19 @@ class EnseignantController extends Controller
             ], 404);
         }
 
-        $absences = $enseignant->absencesEnAttente();
+        $dep = trim((string) $enseignant->departement);
+        $norm = $dep !== '' ? mb_strtolower($dep, 'UTF-8') : null;
+
+        $absences = Absence::with(['etudiant.utilisateur'])
+            ->where('statut', 'en_attente')
+            ->when($norm !== null, function ($q) use ($norm) {
+                $q->whereHas('etudiant', function ($qq) use ($norm) {
+                    $qq->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+                });
+            })
+            ->orderByDesc('date_declaration')
+            ->limit(15)
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -154,10 +208,13 @@ class EnseignantController extends Controller
 
         $absence = Absence::with('etudiant')->findOrFail($id);
 
-        // Option A: vérifier que l'absence appartient à une classe de l'enseignant
-        if (!empty($enseignant->departement)) {
-            $dep = $enseignant->departement;
-            if (!$absence->etudiant || $absence->etudiant->filiere !== $dep) {
+        // Autorisation: departement (enseignant) ↔ filiere (étudiant) normalisés
+        $dep = trim((string) $enseignant->departement);
+        if ($dep !== '') {
+            $depNorm = mb_strtolower($dep, 'UTF-8');
+            $fil = $absence->etudiant ? trim((string) $absence->etudiant->filiere) : '';
+            $filNorm = mb_strtolower($fil, 'UTF-8');
+            if ($filNorm !== $depNorm) {
                 return response()->json([
                     'success' => false,
                     'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
@@ -169,20 +226,7 @@ class EnseignantController extends Controller
             $absence = $enseignant->validerAbsence($id);
             $message = 'Absence validée avec succès';
         } else {
-            $absence = Absence::with('etudiant')->findOrFail($id);
-
-        // Option A: vérifier que l'absence appartient à une classe de l'enseignant
-        if (!empty($enseignant->departement)) {
-            $dep = $enseignant->departement;
-            if (!$absence->etudiant || $absence->etudiant->filiere !== $dep) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
-                ], 403);
-            }
-        }
-
-        $absence = $enseignant->rejeterAbsence($id, $request->motif_refus);
+            $absence = $enseignant->rejeterAbsence($id, $request->motif_refus);
             $message = 'Absence refusée avec succès';
         }
 
@@ -206,6 +250,21 @@ class EnseignantController extends Controller
                 'success' => false,
                 'message' => 'Profil enseignant non trouvé'
             ], 404);
+        }
+
+        // Autorisation: departement (enseignant) ↔ filiere (étudiant) normalisés
+        $absence = Absence::with('etudiant')->findOrFail($id);
+        $dep = trim((string) $enseignant->departement);
+        if ($dep !== '') {
+            $depNorm = mb_strtolower($dep, 'UTF-8');
+            $fil = $absence->etudiant ? trim((string) $absence->etudiant->filiere) : '';
+            $filNorm = mb_strtolower($fil, 'UTF-8');
+            if ($filNorm !== $depNorm) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
+                ], 403);
+            }
         }
 
         $absence = $enseignant->rejeterAbsence($id, $request->motif_refus);

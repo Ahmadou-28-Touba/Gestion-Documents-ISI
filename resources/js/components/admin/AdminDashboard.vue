@@ -94,7 +94,7 @@
                 :key="type"
                 class="d-flex justify-content-between align-items-center mb-2"
               >
-                <span class="badge badge-primary">{{ type }}</span>
+                <span class="badge bg-primary">{{ type }}</span>
                 <span class="fw-bold">{{ count }}</span>
               </div>
             </div>
@@ -204,7 +204,7 @@
                     <tr>
                       <th>Nom</th>
                       <th>Type</th>
-                      <th>Utilisateur</th>
+                      <th>Étudiant</th>
                       <th>Date</th>
                       <th>Statut</th>
                     </tr>
@@ -213,12 +213,15 @@
                     <tr v-for="doc in recentDocuments" :key="doc.id">
                       <td>{{ doc.nom }}</td>
                       <td>
-                        <span class="badge badge-info">{{ doc.type }}</span>
+                        <span class="badge bg-info">{{ doc.type }}</span>
                       </td>
-                      <td>{{ doc.utilisateur?.nom }} {{ doc.utilisateur?.prenom }}</td>
+                      <td>
+                        <span v-if="doc.utilisateur">{{ doc.utilisateur?.nom }} {{ doc.utilisateur?.prenom }}</span>
+                        <span v-else>#{{ doc.etudiant_id || '-' }}</span>
+                      </td>
                       <td>{{ formatDate(doc.date_generation) }}</td>
                       <td>
-                        <span class="badge" :class="doc.est_public ? 'badge-success' : 'badge-warning'">
+                        <span class="badge" :class="doc.est_public ? 'bg-success' : 'bg-warning'">
                           {{ doc.est_public ? 'Public' : 'Archivé' }}
                         </span>
                       </td>
@@ -295,9 +298,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Gestion des Utilisateurs</h5>
-            <button type="button" class="close" @click="showUserManagement = false">
-              <span>&times;</span>
-            </button>
+            <button type="button" class="btn-close" @click="showUserManagement = false" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <UserManagement />
@@ -326,6 +327,7 @@ export default {
     }
   },
   mounted() {
+    try { axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}` } catch {}
     this.loadStatistics()
     this.loadRecentDocuments()
     this.loadPendingAbsences()
@@ -333,7 +335,7 @@ export default {
   methods: {
     async loadStatistics() {
       try {
-        const response = await axios.get('/api/admin/statistiques')
+        const response = await axios.get('admin/statistiques')
         this.statistics = response.data.data
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error)
@@ -343,8 +345,8 @@ export default {
 
     async loadRecentDocuments() {
       try {
-        const response = await axios.get('/api/admin/documents?per_page=5')
-        this.recentDocuments = response.data.data.data
+        const response = await axios.get('admin/documents/recent?limit=5')
+        this.recentDocuments = response.data.data
       } catch (error) {
         console.error('Erreur lors du chargement des documents récents:', error)
       }
@@ -352,7 +354,7 @@ export default {
 
     async loadPendingAbsences() {
       try {
-        const response = await axios.get('/api/absences?statut=en_attente&per_page=5')
+        const response = await axios.get('absences?statut=en_attente&per_page=5')
         this.pendingAbsences = response.data.data.data
       } catch (error) {
         console.error('Erreur lors du chargement des absences en attente:', error)
@@ -379,12 +381,12 @@ export default {
 
     getRoleBadgeClass(role) {
       const classes = {
-        etudiant: 'badge-info',
-        enseignant: 'badge-success',
-        administrateur: 'badge-warning',
-        directeur: 'badge-danger'
+        etudiant: 'bg-info',
+        enseignant: 'bg-success',
+        administrateur: 'bg-warning',
+        directeur: 'bg-danger'
       }
-      return classes[role] || 'badge-secondary'
+      return classes[role] || 'bg-secondary'
     }
   }
 }

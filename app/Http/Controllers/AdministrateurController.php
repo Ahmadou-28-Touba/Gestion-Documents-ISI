@@ -27,6 +27,7 @@ class AdministrateurController extends Controller
                 'message' => 'Profil administrateur non trouvé'
             ], 404);
         }
+
         $statistiques = $administrateur->statistiquesDocuments();
         
         return response()->json([
@@ -37,6 +38,46 @@ class AdministrateurController extends Controller
                 'documents_recents' => $administrateur->tousLesDocuments()->take(5),
                 'modeles_actifs' => ModeleDocument::actifs()->get()
             ]
+        ]);
+    }
+
+    /**
+     * Statistiques pour le tableau de bord Admin
+     */
+    public function statistiques()
+    {
+        $documentsParType = \App\Models\Document::selectRaw('type, COUNT(*) as count')
+            ->groupBy('type')
+            ->get()
+            ->pluck('count', 'type')
+            ->toArray();
+
+        $utilisateursParRole = \App\Models\Utilisateur::selectRaw('role, COUNT(*) as count')
+            ->groupBy('role')
+            ->get()
+            ->pluck('count', 'role')
+            ->toArray();
+
+        $stats = [
+            'documents' => [
+                'total' => \App\Models\Document::count(),
+                'par_type' => $documentsParType,
+            ],
+            'utilisateurs' => [
+                'total' => \App\Models\Utilisateur::count(),
+                'par_role' => $utilisateursParRole,
+            ],
+            'absences' => [
+                'en_attente' => \App\Models\Absence::enAttente()->count(),
+            ],
+            'modeles' => [
+                'actifs' => \App\Models\ModeleDocument::actifs()->count(),
+            ],
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $stats,
         ]);
     }
 

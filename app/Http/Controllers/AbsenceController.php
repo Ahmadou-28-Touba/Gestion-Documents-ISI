@@ -29,7 +29,14 @@ class AbsenceController extends Controller
         } elseif ($utilisateur->isEnseignant()) {
             $enseignant = $utilisateur->enseignant;
             if ($enseignant) {
-                $query->where('enseignant_id', $enseignant->id);
+                // Afficher les absences des étudiants de la filière correspondant au département de l'enseignant
+                $dep = trim((string) $enseignant->departement);
+                if ($dep !== '') {
+                    $norm = mb_strtolower($dep, 'UTF-8');
+                    $query->whereHas('etudiant', function ($q) use ($norm) {
+                        $q->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+                    });
+                }
             }
         }
 
@@ -294,6 +301,18 @@ class AbsenceController extends Controller
             ], 404);
         }
 
+        // Autorisation: l'enseignant ne peut traiter que sa filière (departement ↔ filiere)
+        $dep = trim((string) $enseignant->departement);
+        if ($dep !== '') {
+            $norm = mb_strtolower($dep, 'UTF-8');
+            if (!$absence->etudiant || mb_strtolower(trim((string) $absence->etudiant->filiere), 'UTF-8') !== $norm) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
+                ], 403);
+            }
+        }
+
         if (!$absence->peutEtreValidee()) {
             return response()->json([
                 'success' => false,
@@ -344,6 +363,18 @@ class AbsenceController extends Controller
                 'success' => false,
                 'message' => 'Profil enseignant non trouvé'
             ], 404);
+        }
+
+        // Autorisation: l'enseignant ne peut traiter que sa filière (departement ↔ filiere)
+        $dep = trim((string) $enseignant->departement);
+        if ($dep !== '') {
+            $norm = mb_strtolower($dep, 'UTF-8');
+            if (!$absence->etudiant || mb_strtolower(trim((string) $absence->etudiant->filiere), 'UTF-8') !== $norm) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
+                ], 403);
+            }
         }
 
         if (!$absence->peutEtreRejetee()) {

@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Administrateurs - Phase 1: modèles + génération/publication
     Route::prefix('admin')->middleware('role:administrateur')->group(function () {
+        // Statistiques dashboard admin
+        Route::get('statistiques', [AdministrateurController::class, 'statistiques']);
         // Modèles par type
         Route::get('modeles/types', [AdministrateurController::class, 'listeTypesModeles']);
         Route::get('modeles/type/{type}', [AdministrateurController::class, 'showModeleParType']);
