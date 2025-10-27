@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Convocation</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12pt; }
+    .header { text-align:center; margin-bottom: 20px; }
+    .title { font-size: 18pt; font-weight: bold; text-transform: uppercase; }
+    .content { line-height: 1.6; }
+    .signature { margin-top: 40px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Convocation</div>
+  </div>
+  <div class="content">
+    <p>Nous vous convoquons, <strong>{{ etudiant.prenom }} {{ etudiant.nom }}</strong>, matricule {{ etudiant.numero_etudiant }},
+       le <strong>{{ date_convocation }}</strong> à <strong>{{ heure }}</strong> en salle <strong>{{ salle }}</strong>
+       pour <strong>{{ objet }}</strong>.</p>
+    <p>Fait à Dakar, le {{ date_du_jour }}.</p>
+  </div>
+  <div class="signature">
+    <p>Le Responsable de la Scolarité</p>
+    <p>Signature</p>
+  </div>
+</body>
+</html>

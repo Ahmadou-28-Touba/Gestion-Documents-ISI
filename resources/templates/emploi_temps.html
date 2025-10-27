@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emploi du temps</title>
+  <style>
+    body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11pt; }
+    .header { text-align:center; margin-bottom: 10px; }
+    .title { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #333; padding: 6px; font-size: 10pt; }
+    th { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Emploi du temps</div>
+    <div>{{ semaine_label ?? '' }}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Jour</th>
+        <th>Heure</th>
+        <th>Matière</th>
+        <th>Salle</th>
+        <th>Enseignant</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cours %}
+      <tr>
+        <td>{{ c.jour }}</td>
+        <td>{{ c.horaire }}</td>
+        <td>{{ c.matiere }}</td>
+        <td>{{ c.salle }}</td>
+        <td>{{ c.enseignant }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
