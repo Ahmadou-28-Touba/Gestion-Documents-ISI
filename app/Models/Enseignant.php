@@ -34,6 +34,11 @@ class Enseignant extends Model
     }
 
     // Méthodes métier
+    public function classes()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_enseignant');
+    }
+
     public function validerAbsence($absenceId, $motifRefus = null)
     {
         $absence = Absence::findOrFail($absenceId);

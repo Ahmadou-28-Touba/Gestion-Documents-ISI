@@ -7,6 +7,51 @@
           Tableau de bord Enseignant
         </h2>
       </div>
+
+
+    <!-- Classes gérées -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-users me-2"></i>
+              Classes gérées
+            </h5>
+          </div>
+          <div class="card-body">
+            <div v-if="classes && classes.length">
+              <span v-for="c in classes" :key="c.id" class="badge bg-secondary me-2 mb-2">
+                {{ c.label || (c.filiere + ' ' + c.annee + (c.groupe ? ' (' + c.groupe + ')' : '')) }}
+              </span>
+            </div>
+            <div v-else class="text-muted">Aucune classe rattachée</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matières enseignées -->
+    <div class="row mb-4" v-if="enseignant">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-book me-2"></i>
+              Matières enseignées
+            </h5>
+          </div>
+          <div class="card-body">
+            <div v-if="Array.isArray(enseignant.matieres_enseignees) && enseignant.matieres_enseignees.length">
+              <span v-for="(m, idx) in enseignant.matieres_enseignees" :key="idx" class="badge bg-primary me-2 mb-2">
+                {{ m }}
+              </span>
+            </div>
+            <div v-else class="text-muted">Aucune matière renseignée</div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
 
     <!-- Informations enseignant -->
@@ -399,6 +444,8 @@ export default {
       showRefusModalFlag: false,
       selectedAbsence: null,
       motifRefus: '',
+      // Classes (lecture seule)
+      classes: [],
       profilForm: {
         nom: '',
         prenom: '',
@@ -412,6 +459,7 @@ export default {
   mounted() {
     try { axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}` } catch {}
     this.loadDashboard()
+    this.fetchClasses()
   },
   methods: {
     async loadDashboard() {
@@ -438,6 +486,15 @@ export default {
       } catch (error) {
         console.error('Erreur lors du chargement du dashboard:', error)
         this.$toast.error('Erreur lors du chargement du dashboard')
+      }
+    },
+
+    async fetchClasses() {
+      try {
+        const res = await axios.get('enseignant/classes')
+        this.classes = res.data?.data || []
+      } catch (e) {
+        console.error('Erreur chargement classes:', e)
       }
     },
     

@@ -7,6 +7,7 @@ import EnseignantValidation from '../components/enseignant/ValidationAbsences.vu
 // Admin routes disabled for refactor
 // import AdminDocuments from '../components/admin/AdminDocuments.vue';
 // import AdminUtilisateurs from '../components/admin/AdminUtilisateurs.vue';
+import AdminClasses from '../components/admin/AdminClasses.vue';
 // import AdminArchives from '../components/admin/AdminArchives.vue';
 import DirecteurStatistiques from '../components/directeur/Statistiques.vue';
 import DirecteurRapports from '../components/directeur/Rapports.vue';
@@ -136,6 +137,12 @@ const routes = [
     path: '/admin/utilisateurs',
     name: 'AdminUtilisateurs',
     component: AdminUtilisateurs,
+    meta: { requiresAuth: true, role: 'administrateur' }
+  },
+  {
+    path: '/admin/classes',
+    name: 'AdminClasses',
+    component: AdminClasses,
     meta: { requiresAuth: true, role: 'administrateur' }
   },
   // Routes administrateur

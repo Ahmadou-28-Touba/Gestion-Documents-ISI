@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Absence;
 use App\Models\Enseignant;
 use App\Models\Document;
+use App\Models\Classe;
+use App\Models\Etudiant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -74,6 +76,120 @@ class EnseignantController extends Controller
                 'absences_en_attente' => $absEnAttente,
                 'absences_traitees' => $absTraitees,
             ]
+        ]);
+    }
+
+    /**
+     * Classes affectées à l'enseignant connecté
+     */
+    public function mesClasses()
+    {
+        $enseignant = Auth::user()->enseignant;
+        if (!$enseignant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil enseignant non trouvé'
+            ], 404);
+        }
+
+        $classes = $enseignant->classes()->orderBy('filiere')->orderBy('annee')->orderBy('groupe')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $classes
+        ]);
+    }
+
+    /**
+     * Suggestions de classes (distinct filiere/annee/groupe) basées sur les étudiants de la filière de l'enseignant
+     */
+    public function classesSuggestions()
+    {
+        $enseignant = Auth::user()->enseignant;
+        if (!$enseignant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil enseignant non trouvé'
+            ], 404);
+        }
+
+        $dep = trim((string) $enseignant->departement);
+        if ($dep === '') {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+        $depNorm = mb_strtolower($dep, 'UTF-8');
+
+        $rows = Etudiant::query()
+            ->select(['filiere', 'annee', 'groupe'])
+            ->whereRaw('TRIM(LOWER(filiere)) = ?', [$depNorm])
+            ->whereNotNull('annee')
+            ->distinct()
+            ->orderBy('annee')
+            ->orderBy('groupe')
+            ->get()
+            ->map(function ($r) {
+                $label = $r->filiere . ' ' . $r->annee . ($r->groupe ? ' (' . $r->groupe . ')' : '');
+                return [
+                    'filiere' => $r->filiere,
+                    'annee' => $r->annee,
+                    'groupe' => $r->groupe,
+                    'label' => $label,
+                ];
+            })->values();
+
+        return response()->json(['success' => true, 'data' => $rows]);
+    }
+
+    /** Attach a classe to teacher, creating classe if it doesn't exist */
+    public function attachClasse(Request $request)
+    {
+        $request->validate([
+            'filiere' => 'required|string',
+            'annee' => 'required|string',
+            'groupe' => 'nullable|string',
+            'label' => 'nullable|string',
+        ]);
+
+        $enseignant = Auth::user()->enseignant;
+        if (!$enseignant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil enseignant non trouvé'
+            ], 404);
+        }
+
+        $classe = Classe::firstOrCreate([
+            'filiere' => $request->filiere,
+            'annee' => $request->annee,
+            'groupe' => $request->groupe,
+        ], [
+            'label' => $request->label,
+        ]);
+
+        $enseignant->classes()->syncWithoutDetaching([$classe->id]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $classe
+        ]);
+    }
+
+    /** Detach a classe from teacher */
+    public function detachClasse($id)
+    {
+        $enseignant = Auth::user()->enseignant;
+        if (!$enseignant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil enseignant non trouvé'
+            ], 404);
+        }
+
+        $enseignant->classes()->detach($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Classe détachée'
         ]);
     }
 

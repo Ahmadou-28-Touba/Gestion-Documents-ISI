@@ -46,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('absences/en-attente', [EnseignantController::class, 'absencesEnAttente']);
         Route::post('absences/{id}/valider', [EnseignantController::class, 'validerAbsence']);
         Route::post('absences/{id}/refuser', [EnseignantController::class, 'refuserAbsence']);
+        // Classes (gestion)
+        Route::get('classes', [EnseignantController::class, 'mesClasses']);
+        Route::get('classes/suggestions', [EnseignantController::class, 'classesSuggestions']);
+        Route::post('classes/attach', [EnseignantController::class, 'attachClasse']);
+        Route::delete('classes/{id}/detach', [EnseignantController::class, 'detachClasse']);
         // Emploi du temps
         Route::get('emploi-du-temps', [EnseignantController::class, 'emploiDuTemps']);
         Route::get('emploi-du-temps/{id}/telecharger', [EnseignantController::class, 'telechargerEmploiDuTemps']);
@@ -75,6 +80,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Imports Emploi du Temps
         Route::post('imports/emploi-temps', [AdministrateurController::class, 'uploadEmploiTempsCsv']);
+
+        // Gestion des classes (CRUD + affectations enseignants)
+        Route::get('classes', [AdministrateurController::class, 'listeClasses']);
+        Route::post('classes', [AdministrateurController::class, 'creerClasse']);
+        Route::put('classes/{id}', [AdministrateurController::class, 'mettreAJourClasse']);
+        Route::delete('classes/{id}', [AdministrateurController::class, 'supprimerClasse']);
+        Route::post('classes/{id}/attach-enseignant', [AdministrateurController::class, 'attachEnseignantClasse']);
+        Route::delete('classes/{id}/detach-enseignant/{enseignantId}', [AdministrateurController::class, 'detachEnseignantClasse']);
+
+        // Recherche enseignants
+        Route::get('enseignants/search', [AdministrateurController::class, 'rechercherEnseignants']);
+        // Liste complète des enseignants
+        Route::get('enseignants', [AdministrateurController::class, 'listeEnseignants']);
 
         // Utilisateurs (CRUD minimal)
         Route::get('utilisateurs', [UserController::class, 'index']);

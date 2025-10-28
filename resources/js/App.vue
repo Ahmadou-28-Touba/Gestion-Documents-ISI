@@ -65,6 +65,9 @@
                             <li class="nav-item">
                                 <router-link to="/admin/utilisateurs" class="nav-link">Utilisateurs</router-link>
                             </li>
+                            <li class="nav-item">
+                                <router-link to="/admin/classes" class="nav-link">Gestion des classes</router-link>
+                            </li>
                         </template>
 
                         <template v-if="isDirector">

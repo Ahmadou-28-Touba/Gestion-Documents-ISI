@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DocumentPublieMailable;
 use App\Models\Document;
+use App\Models\Classe;
+use App\Models\Enseignant;
 use App\Models\ModeleDocument;
 use App\Models\Etudiant;
 use PhpOffice\PhpWord\PhpWord;
@@ -39,6 +41,162 @@ class AdministrateurController extends Controller
                 'modeles_actifs' => ModeleDocument::actifs()->get()
             ]
         ]);
+    }
+
+    /**
+     * Gestion des classes (CRUD + affectations enseignants)
+     */
+    public function listeClasses(Request $request)
+    {
+        try {
+            $q = Classe::query();
+            if ($request->filled('filiere')) {
+                $q->where('filiere', $request->input('filiere'));
+            }
+            if ($request->filled('annee')) {
+                $q->where('annee', $request->input('annee'));
+            }
+            $classes = $q->with('enseignants.utilisateur')->orderBy('filiere')->orderBy('annee')->orderBy('groupe')->get();
+            return response()->json(['success' => true, 'data' => $classes]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function creerClasse(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'filiere' => 'required|string|max:255',
+                'annee' => 'required|string|max:50',
+                'groupe' => 'nullable|string|max:50',
+                'label' => 'nullable|string|max:255',
+            ]);
+
+            // Respecter l'unicité (filiere, annee, groupe)
+            $classe = Classe::firstOrCreate([
+                'filiere' => $data['filiere'],
+                'annee' => $data['annee'],
+                'groupe' => $data['groupe'] ?? null,
+            ], [
+                'label' => $data['label'] ?? null,
+            ]);
+
+            return response()->json(['success' => true, 'data' => $classe]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function mettreAJourClasse(Request $request, $id)
+    {
+        try {
+            $classe = Classe::findOrFail($id);
+            $data = $request->validate([
+                'filiere' => 'sometimes|string|max:255',
+                'annee' => 'sometimes|string|max:50',
+                'groupe' => 'nullable|string|max:50',
+                'label' => 'nullable|string|max:255',
+            ]);
+
+            // Tentative de mise à jour avec vérification d'unicité manuelle
+            if (isset($data['filiere']) || isset($data['annee']) || array_key_exists('groupe', $data)) {
+                $f = $data['filiere'] ?? $classe->filiere;
+                $a = $data['annee'] ?? $classe->annee;
+                $g = array_key_exists('groupe', $data) ? $data['groupe'] : $classe->groupe;
+                $exists = Classe::where('filiere', $f)->where('annee', $a)->where('groupe', $g)->where('id', '!=', $classe->id)->exists();
+                if ($exists) {
+                    return response()->json(['success' => false, 'message' => 'Une classe identique existe déjà'], 422);
+                }
+            }
+
+            $classe->update($data);
+            return response()->json(['success' => true, 'data' => $classe->fresh()]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function supprimerClasse($id)
+    {
+        try {
+            $classe = Classe::findOrFail($id);
+            $classe->delete();
+            return response()->json(['success' => true, 'message' => 'Classe supprimée']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function attachEnseignantClasse(Request $request, $id)
+    {
+        try {
+            $classe = Classe::findOrFail($id);
+            $data = $request->validate([
+                'enseignant_id' => 'required|integer|exists:enseignants,id',
+            ]);
+            $classe->enseignants()->syncWithoutDetaching([$data['enseignant_id']]);
+            return response()->json(['success' => true, 'data' => $classe->load('enseignants.utilisateur')]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function detachEnseignantClasse($id, $enseignantId)
+    {
+        try {
+            $classe = Classe::findOrFail($id);
+            $classe->enseignants()->detach($enseignantId);
+            return response()->json(['success' => true, 'message' => 'Enseignant détaché de la classe']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Recherche d'enseignants par nom, prénom ou matricule (admin)
+     */
+    public function rechercherEnseignants(Request $request)
+    {
+        try {
+            $q = trim((string) $request->input('q', ''));
+            if ($q === '') {
+                return response()->json(['success' => true, 'data' => []]);
+            }
+            $enseignants = Enseignant::with('utilisateur')
+                ->whereHas('utilisateur', function($sub) use ($q) {
+                    $sub->where('nom', 'like', "%$q%")
+                        ->orWhere('prenom', 'like', "%$q%")
+                        ->orWhere('email', 'like', "%$q%");
+                })
+                ->orWhere('matricule', 'like', "%$q%")
+                ->orderBy('matricule')
+                ->limit(10)
+                ->get();
+
+            return response()->json(['success' => true, 'data' => $enseignants]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Liste complète des enseignants (admin)
+     */
+    public function listeEnseignants(Request $request)
+    {
+        try {
+            $paginate = filter_var($request->input('paginate', false), FILTER_VALIDATE_BOOLEAN);
+            $q = Enseignant::with('utilisateur')->orderBy('matricule');
+            if ($paginate) {
+                $perPage = (int) ($request->input('per_page', 20));
+                return response()->json(['success' => true, 'data' => $q->paginate($perPage)]);
+            }
+            $list = $q->get();
+            return response()->json(['success' => true, 'data' => $list]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     /**

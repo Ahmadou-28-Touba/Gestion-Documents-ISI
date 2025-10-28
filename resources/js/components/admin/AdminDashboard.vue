@@ -177,6 +177,12 @@
                   Gérer les utilisateurs
                 </router-link>
               </div>
+              <div class="col-md-4 col-lg-3 mb-3">
+                <router-link to="/admin/classes" class="btn btn-outline-dark w-100">
+                  <i class="fas fa-users me-2"></i>
+                  Gestion des classes
+                </router-link>
+              </div>
             </div>
           </div>
         </div>
