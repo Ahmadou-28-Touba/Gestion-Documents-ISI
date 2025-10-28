@@ -14,6 +14,7 @@ class Etudiant extends Model
         'numero_etudiant',
         'filiere',
         'annee',
+        'groupe',
         'date_inscription',
     ];
 
@@ -21,10 +22,32 @@ class Etudiant extends Model
         'date_inscription' => 'date',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function (Etudiant $etudiant) {
+            $filiere = trim((string) $etudiant->filiere);
+            $annee = trim((string) $etudiant->annee);
+            $groupe = $etudiant->groupe !== null && $etudiant->groupe !== '' ? trim((string) $etudiant->groupe) : null;
+            if ($filiere !== '' && $annee !== '') {
+                $classe = \App\Models\Classe::firstOrCreate([
+                    'filiere' => $filiere,
+                    'annee' => $annee,
+                    'groupe' => $groupe,
+                ]);
+                $etudiant->classe_id = $classe->id;
+            }
+        });
+    }
+
     // Relation avec l'utilisateur
     public function utilisateur()
     {
         return $this->belongsTo(Utilisateur::class, 'utilisateur_id');
+    }
+
+    public function classe()
+    {
+        return $this->belongsTo(Classe::class, 'classe_id');
     }
 
     // Relation avec les absences

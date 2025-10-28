@@ -4,7 +4,7 @@
       <div class="col-12">
         <h2>
           <i class="fas fa-users me-2"></i>
-          Gestion des classes
+          Gestion des classes et matières
         </h2>
       </div>
     </div>
@@ -81,12 +81,19 @@
                 </td>
                 <td class="position-relative" style="min-width: 360px;">
                   <div>
-                    <span v-for="e in (c.enseignants || [])" :key="e.id" class="badge bg-secondary me-1 mb-1">
-                      {{ e.utilisateur?.nom }} {{ e.utilisateur?.prenom }}
-                      <button class="btn btn-sm btn-link text-light ms-1 p-0" title="Retirer" @click="detachEnseignant(c.id, e.id)">
+                    <div v-for="e in (c.enseignants || [])" :key="e.id" class="badge bg-secondary me-2 mb-2 p-2 d-inline-flex align-items-center" style="white-space: normal;">
+                      <span>
+                        {{ e.utilisateur?.nom }} {{ e.utilisateur?.prenom }}
+                        <small class="ms-1">(<em>{{ e.matricule }}</em>)</small>
+                      </span>
+                      <button class="btn btn-sm btn-link text-light ms-2 p-0" title="Retirer" @click="detachEnseignant(c.id, e.id)">
                         <i class="fas fa-times"></i>
                       </button>
-                    </span>
+                      <div class="input-group input-group-sm ms-2" style="min-width: 200px;">
+                        <input :aria-label="`Matière pour ${e.utilisateur?.nom} ${e.utilisateur?.prenom}`" v-model="e._matiere" type="text" class="form-control" placeholder="Matière (ex: Math)">
+                        <button class="btn btn-outline-light" title="Enregistrer la matière" @click="saveMatiere(c.id, e)"><i class="fas fa-save"></i></button>
+                      </div>
+                    </div>
                   </div>
                   <div class="mt-2">
                     <div class="input-group input-group-sm">
@@ -182,6 +189,7 @@ export default {
         const res = await axios.get('admin/classes', { timeout: 15000 })
         this.classes = (res.data?.data || []).map(c => ({
           ...c,
+          enseignants: (c.enseignants || []).map(e => ({ ...e, _matiere: e.pivot?.matiere || '' })),
           _editing: false,
           _edit: { ...c },
           _attachId: '',
@@ -193,6 +201,36 @@ export default {
       } catch (e) {
         console.error('Erreur chargement classes:', e)
         this.$toast?.error?.('Erreur chargement classes')
+      }
+    },
+    async saveMatiere(classeId, enseignant)
+    {
+      try {
+        await axios.put(`admin/classes/${classeId}/enseignants/${enseignant.id}/matiere`, { matiere: (enseignant._matiere || '').trim() }, { timeout: 15000 })
+        this.$toast?.success?.('Matière enregistrée')
+        // Recharger uniquement la ligne concernée
+        const res = await axios.get('admin/classes', { timeout: 15000 })
+        const updated = (res.data?.data || []).find(c => c.id === classeId)
+        if (updated) {
+          const idx = this.classes.findIndex(c => c.id === classeId)
+          if (idx !== -1) {
+            this.classes[idx] = {
+              ...updated,
+              enseignants: (updated.enseignants || []).map(e => ({ ...e, _matiere: e.pivot?.matiere || '' })),
+              _editing: false,
+              _edit: { ...updated },
+              _attachId: '',
+              _search: '',
+              _results: [],
+              _selected: null,
+              _searchTimer: null,
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Erreur enregistrement matière:', e)
+        const msg = e.response?.data?.message || 'Erreur enregistrement matière'
+        this.$toast?.error?.(msg)
       }
     },
     async loadAllEnseignants() {

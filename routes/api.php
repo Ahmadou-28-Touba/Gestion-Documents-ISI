@@ -88,11 +88,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('classes/{id}', [AdministrateurController::class, 'supprimerClasse']);
         Route::post('classes/{id}/attach-enseignant', [AdministrateurController::class, 'attachEnseignantClasse']);
         Route::delete('classes/{id}/detach-enseignant/{enseignantId}', [AdministrateurController::class, 'detachEnseignantClasse']);
+        Route::put('classes/{id}/enseignants/{enseignantId}/matiere', [AdministrateurController::class, 'updateMatiereClasseEnseignant']);
 
         // Recherche enseignants
         Route::get('enseignants/search', [AdministrateurController::class, 'rechercherEnseignants']);
         // Liste complète des enseignants
         Route::get('enseignants', [AdministrateurController::class, 'listeEnseignants']);
+        // Gestion des matières enseignées par enseignant
+        Route::get('enseignants/{id}/matieres', [AdministrateurController::class, 'getMatieresEnseignant']);
+        Route::put('enseignants/{id}/matieres', [AdministrateurController::class, 'updateMatieresEnseignant']);
 
         // Utilisateurs (CRUD minimal)
         Route::get('utilisateurs', [UserController::class, 'index']);

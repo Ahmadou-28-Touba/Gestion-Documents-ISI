@@ -18,6 +18,11 @@ class Classe extends Model
 
     public function enseignants()
     {
-        return $this->belongsToMany(Enseignant::class, 'classe_enseignant');
+        return $this->belongsToMany(Enseignant::class, 'classe_enseignant')->withPivot('matiere');
+    }
+
+    public function etudiants()
+    {
+        return $this->hasMany(Etudiant::class, 'classe_id');
     }
 }

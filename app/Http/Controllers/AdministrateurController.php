@@ -154,6 +154,84 @@ class AdministrateurController extends Controller
     }
 
     /**
+     * Met à jour la matière enseignée pour la relation Classe-Enseignant (pivot)
+     */
+    public function updateMatiereClasseEnseignant(Request $request, $id, $enseignantId)
+    {
+        try {
+            $data = $request->validate([
+                'matiere' => 'nullable|string|max:100',
+            ]);
+            $classe = Classe::findOrFail($id);
+            // S'assurer que la relation existe
+            if (!$classe->enseignants()->where('enseignant_id', $enseignantId)->exists()) {
+                return response()->json(['success' => false, 'message' => 'Relation classe-enseignant introuvable'], 404);
+            }
+            $classe->enseignants()->updateExistingPivot($enseignantId, [
+                'matiere' => $data['matiere'] ?? null,
+            ]);
+
+            // Synchroniser la matière vers la liste globale de l'enseignant si fournie
+            if (($data['matiere'] ?? '') !== '') {
+                $enseignant = Enseignant::findOrFail($enseignantId);
+                $glob = is_array($enseignant->matieres_enseignees) ? $enseignant->matieres_enseignees : [];
+                $glob = array_values(array_unique(array_filter(array_map(function($m){ return trim((string)$m); }, array_merge($glob, [$data['matiere']])))));
+                $enseignant->matieres_enseignees = $glob;
+                $enseignant->save();
+            }
+
+            return response()->json(['success' => true, 'data' => $classe->load('enseignants.utilisateur')]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Récupérer les matières enseignées par un enseignant
+     */
+    public function getMatieresEnseignant($id)
+    {
+        try {
+            $enseignant = Enseignant::with('utilisateur')->findOrFail($id);
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'enseignant' => $enseignant,
+                    'matieres' => $enseignant->matieres_enseignees ?? [],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Mettre à jour les matières enseignées par un enseignant
+     */
+    public function updateMatieresEnseignant(Request $request, $id)
+    {
+        try {
+            $data = $request->validate([
+                'matieres' => 'required|array',
+                'matieres.*' => 'string|max:100',
+            ]);
+
+            $enseignant = Enseignant::findOrFail($id);
+            // Nettoyage: trim, filtre valeurs vides, unique, réindexation
+            $matieres = array_values(array_unique(array_filter(array_map(function ($m) {
+                return trim((string) $m);
+            }, $data['matieres']))));
+
+            $enseignant->matieres_enseignees = $matieres;
+            $enseignant->save();
+
+            return response()->json(['success' => true, 'data' => $enseignant->fresh()]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Recherche d'enseignants par nom, prénom ou matricule (admin)
      */
     public function rechercherEnseignants(Request $request)
