@@ -5,7 +5,7 @@
             <div class="container">
                 <a class="navbar-brand" href="#">
                     <i class="fas fa-graduation-cap me-2"></i>
-                    Gestion Documents ISI
+                    <span class="d-inline-block text-truncate align-middle" style="max-width: 180px" title="Gestion Documents ISI">Gestion Documents ISI</span>
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -54,7 +54,10 @@
                                 <router-link to="/admin/dashboard" class="nav-link">Dashboard</router-link>
                             </li>
                             <li class="nav-item">
-                                <router-link to="/admin/generer-publier" class="nav-link">Gestion Administrative</router-link>
+                                <router-link to="/admin/generer-publier" class="nav-link" title="Gestion Administrative">
+                                    <span class="d-none d-md-inline text-truncate" style="max-width: 160px; display:inline-block;">Gestion Administrative</span>
+                                    <span class="d-inline d-md-none">Admin</span>
+                                </router-link>
                             </li>
                             <li class="nav-item">
                                 <router-link to="/admin/modeles" class="nav-link">Modèles</router-link>
@@ -66,7 +69,10 @@
                                 <router-link to="/admin/utilisateurs" class="nav-link">Utilisateurs</router-link>
                             </li>
                             <li class="nav-item">
-                                <router-link to="/admin/classes" class="nav-link">Gestion des classes</router-link>
+                                <router-link to="/admin/classes" class="nav-link" title="Gestion des classes">
+                                    <span class="d-none d-md-inline text-truncate" style="max-width: 160px; display:inline-block;">Gestion des classes</span>
+                                    <span class="d-inline d-md-none">Classes</span>
+                                </router-link>
                             </li>
                         </template>
 

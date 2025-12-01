@@ -7,7 +7,7 @@
           Tableau de bord Enseignant
         </h2>
       </div>
-
+    </div>
 
     <!-- Classes gérées -->
     <div class="row mb-4">
@@ -31,6 +31,9 @@
       </div>
     </div>
 
+    <!-- (section Notes déplacée vers la page dédiée Gestion des notes) -->
+
+
     <!-- Matières enseignées -->
     <div class="row mb-4" v-if="enseignant">
       <div class="col-12">
@@ -43,7 +46,11 @@
           </div>
           <div class="card-body">
             <div v-if="Array.isArray(enseignant.matieres_enseignees) && enseignant.matieres_enseignees.length">
-              <span v-for="(m, idx) in enseignant.matieres_enseignees" :key="idx" class="badge bg-primary me-2 mb-2">
+              <span
+                v-for="(m, idx) in enseignant.matieres_enseignees"
+                :key="idx"
+                class="badge bg-primary me-2 mb-2"
+              >
                 {{ m }}
               </span>
             </div>
@@ -51,7 +58,6 @@
           </div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- Informations enseignant -->
@@ -144,16 +150,10 @@
                 </router-link>
               </div>
               <div class="col-md-3 mb-3">
-                <button class="btn btn-outline-primary w-100" @click="loadAbsencesEnAttente">
-                  <i class="fas fa-refresh me-2"></i>
-                  Actualiser
-                </button>
-              </div>
-              <div class="col-md-3 mb-3">
-                <button class="btn btn-outline-success w-100" @click="showStatistiquesModal = true">
-                  <i class="fas fa-chart-bar me-2"></i>
-                  Statistiques
-                </button>
+                <router-link to="/enseignant/notes" class="btn btn-outline-primary w-100">
+                  <i class="fas fa-pen me-2"></i>
+                  Gestion des notes
+                </router-link>
               </div>
             </div>
           </div>
@@ -198,29 +198,33 @@
                         {{ formatDate(absence.date_debut) }} - {{ formatDate(absence.date_fin) }}
                       </td>
                       <td>
-                        <span class="text-truncate d-inline-block" style="max-width: 200px;" :title="absence.motif">
+                        <span
+                          class="text-truncate d-inline-block"
+                          style="max-width: 200px;"
+                          :title="absence.motif"
+                        >
                           {{ absence.motif }}
                         </span>
                       </td>
                       <td>{{ formatDate(absence.date_declaration) }}</td>
                       <td>
                         <div class="btn-group" role="group">
-                          <button 
-                            class="btn btn-sm btn-success" 
+                          <button
+                            class="btn btn-sm btn-success"
                             @click="validerAbsence(absence.id)"
                             title="Valider"
                           >
                             <i class="fas fa-check"></i>
                           </button>
-                          <button 
-                            class="btn btn-sm btn-danger" 
+                          <button
+                            class="btn btn-sm btn-danger"
                             @click="showRefusModal(absence)"
                             title="Refuser"
                           >
                             <i class="fas fa-times"></i>
                           </button>
-                          <button 
-                            class="btn btn-sm btn-info" 
+                          <button
+                            class="btn btn-sm btn-info"
                             @click="voirDetails(absence)"
                             title="Détails"
                           >
@@ -284,7 +288,12 @@
                       </td>
                       <td>{{ formatDate(absence.date_traitement) }}</td>
                       <td>
-                        <span v-if="absence.commentaire_enseignant" class="text-truncate d-inline-block" style="max-width: 150px;" :title="absence.commentaire_enseignant">
+                        <span
+                          v-if="absence.commentaire_enseignant"
+                          class="text-truncate d-inline-block"
+                          style="max-width: 150px;"
+                          :title="absence.commentaire_enseignant"
+                        >
                           {{ absence.commentaire_enseignant }}
                         </span>
                         <span v-else class="text-muted">-</span>
@@ -303,7 +312,11 @@
     </div>
 
     <!-- Modal refus d'absence -->
-    <div class="modal fade" :class="{ show: showRefusModalFlag }" :style="{ display: showRefusModalFlag ? 'block' : 'none' }">
+    <div
+      class="modal fade"
+      :class="{ show: showRefusModalFlag }"
+      :style="{ display: showRefusModalFlag ? 'block' : 'none' }"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -312,16 +325,24 @@
           </div>
           <div class="modal-body">
             <div v-if="selectedAbsence">
-              <p><strong>Étudiant:</strong> {{ selectedAbsence.etudiant?.utilisateur?.nom }} {{ selectedAbsence.etudiant?.utilisateur?.prenom }}</p>
-              <p><strong>Période:</strong> {{ formatDate(selectedAbsence.date_debut) }} - {{ formatDate(selectedAbsence.date_fin) }}</p>
+              <p>
+                <strong>Étudiant:</strong>
+                {{ selectedAbsence.etudiant?.utilisateur?.nom }}
+                {{ selectedAbsence.etudiant?.utilisateur?.prenom }}
+              </p>
+              <p>
+                <strong>Période:</strong>
+                {{ formatDate(selectedAbsence.date_debut) }} -
+                {{ formatDate(selectedAbsence.date_fin) }}
+              </p>
               <p><strong>Motif:</strong> {{ selectedAbsence.motif }}</p>
-              
+
               <div class="form-group mt-3">
                 <label>Motif du refus *</label>
-                <textarea 
-                  class="form-control" 
-                  rows="3" 
-                  v-model="motifRefus" 
+                <textarea
+                  class="form-control"
+                  rows="3"
+                  v-model="motifRefus"
                   required
                   placeholder="Expliquez pourquoi cette absence est refusée..."
                 ></textarea>
@@ -341,7 +362,11 @@
     </div>
 
     <!-- Modal profil -->
-    <div class="modal fade" :class="{ show: showProfilModal }" :style="{ display: showProfilModal ? 'block' : 'none' }">
+    <div
+      class="modal fade"
+      :class="{ show: showProfilModal }"
+      :style="{ display: showProfilModal ? 'block' : 'none' }"
+    >
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -354,9 +379,9 @@
                 <div class="col-md-6">
                   <div class="form-group mb-3">
                     <label>Nom</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
+                    <input
+                      type="text"
+                      class="form-control"
                       v-model="profilForm.nom"
                     >
                   </div>
@@ -364,31 +389,31 @@
                 <div class="col-md-6">
                   <div class="form-group mb-3">
                     <label>Prénom</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
+                    <input
+                      type="text"
+                      class="form-control"
                       v-model="profilForm.prenom"
                     >
                   </div>
                 </div>
               </div>
-              
+
               <div class="form-group mb-3">
                 <label>Email</label>
-                <input 
-                  type="email" 
-                  class="form-control" 
+                <input
+                  type="email"
+                  class="form-control"
                   v-model="profilForm.email"
                 >
               </div>
-              
+
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group mb-3">
                     <label>Matricule</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
+                    <input
+                      type="text"
+                      class="form-control"
                       v-model="profilForm.matricule"
                     >
                   </div>
@@ -396,20 +421,20 @@
                 <div class="col-md-6">
                   <div class="form-group mb-3">
                     <label>Département</label>
-                    <input 
-                      type="text" 
-                      class="form-control" 
+                    <input
+                      type="text"
+                      class="form-control"
                       v-model="profilForm.departement"
                     >
                   </div>
                 </div>
               </div>
-              
+
               <div class="form-group mb-3">
                 <label>Bureau</label>
-                <input 
-                  type="text" 
-                  class="form-control" 
+                <input
+                  type="text"
+                  class="form-control"
                   v-model="profilForm.bureau"
                 >
               </div>
@@ -426,6 +451,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -440,6 +466,9 @@ export default {
       statistiques: null,
       absencesEnAttente: [],
       absencesTraitees: [],
+      notes: [],
+      etudiants: [],
+
       showProfilModal: false,
       showRefusModalFlag: false,
       selectedAbsence: null,
@@ -453,6 +482,15 @@ export default {
         matricule: '',
         departement: '',
         bureau: ''
+      },
+      noteForm: {
+        etudiant_id: '',
+        matiere: '',
+        type_controle: '',
+        valeur: null,
+        date: new Date().toISOString().split('T')[0],
+        periode: '',
+        commentaire: ''
       }
     }
   },
@@ -460,6 +498,8 @@ export default {
     try { axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}` } catch {}
     this.loadDashboard()
     this.fetchClasses()
+    this.loadNotes()
+    this.fetchEtudiants()
   },
   methods: {
     async loadDashboard() {
@@ -489,12 +529,66 @@ export default {
       }
     },
 
+    async loadNotes() {
+      try {
+        const res = await axios.get('enseignant/notes')
+        this.notes = res.data?.data || []
+      } catch (e) {
+        console.error('Erreur chargement notes:', e)
+        this.$toast?.error?.('Erreur lors du chargement des notes')
+      }
+    },
+
+    async submitNote() {
+      try {
+        const payload = { ...this.noteForm }
+        // Nettoyage simple
+        if (!payload.matiere) delete payload.matiere
+        if (!payload.periode) delete payload.periode
+        if (!payload.commentaire) delete payload.commentaire
+
+        await axios.post('enseignant/notes', payload)
+        this.$toast?.success?.('Note enregistrée avec succès')
+        this.loadNotes()
+
+        this.noteForm = {
+          etudiant_id: '',
+          matiere: this.noteForm.matiere,
+          type_controle: this.noteForm.type_controle,
+          valeur: null,
+          date: new Date().toISOString().split('T')[0],
+          periode: this.noteForm.periode,
+          commentaire: ''
+        }
+      } catch (error) {
+        console.error('Erreur lors de la saisie de la note:', error)
+        const r = error.response
+        if (r?.status === 422 && r?.data?.errors) {
+          const msgs = Object.values(r.data.errors).flat().join('\n')
+          this.$toast?.error?.(`Validation échouée:\n${msgs}`)
+        } else {
+          const msg = r?.data?.message || error.message || 'Erreur lors de l\'enregistrement de la note'
+          this.$toast?.error?.(msg)
+        }
+      }
+    },
+
     async fetchClasses() {
       try {
         const res = await axios.get('enseignant/classes')
         this.classes = res.data?.data || []
       } catch (e) {
         console.error('Erreur chargement classes:', e)
+      }
+    },
+
+    async fetchEtudiants() {
+      try {
+        const res = await axios.get('enseignant/etudiants')
+        // On s'attend à un tableau d'étudiants avec relations utilisateur
+        this.etudiants = res.data?.data || res.data || []
+      } catch (e) {
+        console.error('Erreur chargement étudiants:', e)
       }
     },
     

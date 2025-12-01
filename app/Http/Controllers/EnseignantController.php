@@ -213,6 +213,43 @@ class EnseignantController extends Controller
         ]);
     }
 
+    /**
+     * Liste des étudiants accessibles à l'enseignant (pour la saisie de notes).
+     * Par défaut filtrés par la filière (département) de l'enseignant.
+     */
+    public function etudiants()
+    {
+        $enseignant = Auth::user()->enseignant;
+
+        if (!$enseignant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profil enseignant non trouvé'
+            ], 404);
+        }
+
+        $dep = trim((string) $enseignant->departement);
+        $norm = $dep !== '' ? mb_strtolower($dep, 'UTF-8') : null;
+
+        $query = Etudiant::with('utilisateur');
+
+        if ($norm !== null) {
+            $query->whereRaw('TRIM(LOWER(filiere)) = ?', [$norm]);
+        }
+
+        $etudiants = $query
+            ->orderBy('filiere')
+            ->orderBy('annee')
+            ->orderBy('groupe')
+            ->orderBy('numero_etudiant')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $etudiants
+        ]);
+    }
+
     public function modifierProfil(Request $request)
     {
         $request->validate([

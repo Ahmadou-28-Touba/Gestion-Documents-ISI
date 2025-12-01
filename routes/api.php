@@ -9,6 +9,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NoteController;
 use Illuminate\Support\Facades\Route;
 
 // Routes publiques (auth)
@@ -35,6 +36,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('absences', [EtudiantController::class, 'store']);
         Route::get('documents', [EtudiantController::class, 'consulterDocuments']);
         Route::get('documents/{id}/telecharger', [EtudiantController::class, 'telechargerDocument']);
+        
+        // Récupérer les données de l'étudiant pour les documents
+        Route::get('donnees-document', function () {
+            $etudiant = auth()->user()->etudiant;
+            return app()->make('App\Http\Controllers\DocumentController')
+                ->getStudentData($etudiant->id);
+        });
+
+        // Notes de l'étudiant
+        Route::get('notes', [NoteController::class, 'mesNotesPourEtudiant']);
     });
 
     // Enseignants
@@ -54,6 +65,15 @@ Route::middleware('auth:sanctum')->group(function () {
         // Emploi du temps
         Route::get('emploi-du-temps', [EnseignantController::class, 'emploiDuTemps']);
         Route::get('emploi-du-temps/{id}/telecharger', [EnseignantController::class, 'telechargerEmploiDuTemps']);
+
+        // Étudiants (pour la gestion des notes)
+        Route::get('etudiants', [EnseignantController::class, 'etudiants']);
+
+        // Gestion des notes
+        Route::get('notes', [NoteController::class, 'indexPourEnseignant']);
+        Route::post('notes', [NoteController::class, 'storePourEnseignant']);
+        Route::put('notes/{id}', [NoteController::class, 'updatePourEnseignant']);
+        Route::delete('notes/{id}', [NoteController::class, 'destroyPourEnseignant']);
     });
 
     // Administrateurs - Phase 1: modèles + génération/publication
@@ -62,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('statistiques', [AdministrateurController::class, 'statistiques']);
         // Modèles par type
         Route::get('modeles/types', [AdministrateurController::class, 'listeTypesModeles']);
+        // Récupérer les types de documents (pour le sélecteur)
+        Route::get('modele-documents/types', [AdministrateurController::class, 'listeTypesModeles']);
         Route::get('modeles/type/{type}', [AdministrateurController::class, 'showModeleParType']);
         Route::get('modeles/type/{type}/download', [AdministrateurController::class, 'downloadModeleParType']);
         Route::get('modeles/type/{type}/new-docx', [AdministrateurController::class, 'newModeleDocxParType']);
@@ -105,6 +127,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('utilisateurs/{id}', [UserController::class, 'update']);
         Route::post('utilisateurs/{id}/password', [UserController::class, 'updatePassword']);
         Route::delete('utilisateurs/{id}', [UserController::class, 'destroy']);
+
+        // Validation des notes
+        Route::post('notes/{id}/valider', [NoteController::class, 'validerParAdmin']);
     });
 
     // Directeurs
@@ -144,6 +169,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/archiver', [DocumentController::class, 'archiver']);
         Route::post('/{id}/desarchiver', [DocumentController::class, 'desarchiver']);
         Route::post('/{id}/dupliquer', [DocumentController::class, 'dupliquer']);
+        
+        // Publication groupée de documents
+        Route::post('/publier-pour-tous', [DocumentController::class, 'publierPourTous']);
+        
+        // Publication groupée de bulletins de notes
+        Route::post('/publier-bulletins', [DocumentController::class, 'publierBulletinsPourTous'])
+            ->middleware(['auth:sanctum', 'ability:admin,directeur']);
     });
 
     // Routes globales pour Absences
@@ -163,10 +195,11 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Route de test
-//Route::get('test', function () {
-//    return response()->json([
-//        'message' => 'API de gestion ISI fonctionnelle',
-//        'version' => '1.0.0',
-//        'timestamp' => now()
-//    ]);
-//});
+Route::get('test', function () {
+    return response()->json([
+        'message' => 'Test route works!',
+    ]);
+});
+
+// Route temporaire pour tester les statistiques sans authentification
+Route::get('statistiques-test', [AdministrateurController::class, 'statistiques']);

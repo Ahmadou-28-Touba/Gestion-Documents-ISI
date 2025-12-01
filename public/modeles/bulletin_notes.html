@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bulletin de Notes</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .logo { max-width: 120px; margin-bottom: 10px; }
+        h1 { color: #2c3e50; font-size: 22px; margin: 10px 0; }
+        h2 { color: #34495e; font-size: 18px; margin: 20px 0 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .info { margin-bottom: 20px; }
+        .info p { margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .footer { margin-top: 30px; font-size: 14px; text-align: center; }
+        .signature { margin-top: 30px; text-align: right; }
+        .signature-line { border-top: 1px solid #000; width: 300px; display: inline-block; }
+        .moyenne { font-weight: bold; margin-top: 10px; }
+        .mention { text-align: center; font-size: 16px; margin: 20px 0; padding: 10px; background-color: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_etablissement }}" alt="Logo de l'établissement" class="logo">
+        <h1>BULLETIN DE NOTES</h1>
+        <h2>Année universitaire {{ annee_scolaire }}</h2>
+    </div>
+
+    <div class="info">
+        <p><strong>Étudiant(e) :</strong> {{ etudiant_prenom }} {{ etudiant_nom }}</p>
+        <p><strong>Né(e) le :</strong> {{ etudiant_date_naissance }} à {{ etudiant_lieu_naissance }}</p>
+        <p><strong>Numéro d'étudiant :</strong> {{ etudiant_numero }}</p>
+        <p><strong>Filière :</strong> {{ etudiant_filiere }}</p>
+        <p><strong>Niveau :</strong> {{ etudiant_annee }} année</p>
+        {{#if etudiant_groupe}}
+        <p><strong>Groupe :</strong> {{ etudiant_groupe }}</p>
+        {{/if}}
+    </div>
+
+    <h2>Résultats académiques - {{ bulletin_notes.periode }}</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Matière</th>
+                <th>Note moyenne</th>
+                <th>Détails</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each bulletin_notes.matieres}}
+            <tr>
+                <td>{{ this.matiere }}</td>
+                <td style="text-align: center;">{{ this.moyenne }}/20</td>
+                <td>
+                    {{#if this.notes}}
+                        {{#each this.notes}}
+                            <div>
+                                <strong>{{ this.type_controle }}</strong> : {{ this.valeur }}/20
+                                {{#if this.date}} ({{ this.date }}){{/if}}
+                                {{#if this.commentaire}}<br><em>{{ this.commentaire }}</em>{{/if}}
+                            </div>
+                        {{/each}}
+                    {{/if}}
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="moyenne">
+        <p>Moyenne générale : <strong>{{ bulletin_notes.moyenne_generale }}/20</strong></p>
+    </div>
+
+    <div class="mention">
+        <p>Mentions : <strong>{{ mention }}</strong></p>
+    </div>
+
+    <div class="signature">
+        <p>Le {{ directeur_poste }},</p>
+        <div class="signature-line"></div>
+        <p>{{ directeur_nom }}</p>
+    </div>
+
+    <div class="footer">
+        <p>{{ nom_etablissement }}</p>
+        <p>{{ adresse_etablissement }} - {{ code_postal_etablissement }} {{ ville_etablissement }}</p>
+        <p>Tél : {{ telephone_etablissement }} - Email : {{ email_etablissement }}</p>
+    </div>
+</body>
+</html>

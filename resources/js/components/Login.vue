@@ -64,12 +64,11 @@
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remember">
-                    <label class="form-check-label" for="remember">Se souvenir de moi</label>
-                  </div>
-                  <small class="text-muted">Mot de passe oublié ?</small>
+                <div class="d-flex justify-content-center mb-4">
+                  <button type="button" class="btn btn-outline-secondary btn-sm px-3">
+                    <i class="fas fa-key me-1"></i>
+                    Mot de passe oublié ?
+                  </button>
                 </div>
 
                 <div class="d-grid">
@@ -85,44 +84,6 @@
                 </div>
               </form>
 
-              <div class="mt-4">
-                <div class="card bg-light border-0">
-                  <div class="card-header bg-transparent border-0 pb-0">
-                    <h6 class="mb-0 text-muted">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Comptes de test
-                    </h6>
-                  </div>
-                  <div class="card-body pt-2">
-                    <div class="row g-2">
-                      <div class="col-6 d-grid">
-                        <button @click="fillCredentials('alice.student@isi.com', 'password')"
-                                class="btn btn-sm btn-outline-primary">
-                          Étudiant
-                        </button>
-                      </div>
-                      <div class="col-6 d-grid">
-                        <button @click="fillCredentials('jean.dupont@isi.com', 'password')"
-                                class="btn btn-sm btn-outline-success">
-                          Enseignant
-                        </button>
-                      </div>
-                      <div class="col-6 d-grid">
-                        <button @click="fillCredentials('admin@isi.com', 'password')"
-                                class="btn btn-sm btn-outline-warning">
-                          Admin
-                        </button>
-                      </div>
-                      <div class="col-6 d-grid">
-                        <button @click="fillCredentials('directeur@isi.com', 'password')"
-                                class="btn btn-sm btn-outline-info">
-                          Directeur
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               <div class="text-center mt-3 small text-muted">
                 © {{ new Date().getFullYear() }} Institut Supérieur d'Informatique
@@ -187,10 +148,6 @@ export default {
       }
     };
     
-    const fillCredentials = (email, password) => {
-      form.email = email;
-      form.password = password;
-    };
     
     return {
       form,
@@ -198,7 +155,6 @@ export default {
       showPassword,
       errors,
       login,
-      fillCredentials
     };
   }
 };
@@ -236,6 +192,8 @@ export default {
   border-color: #0d6efd;
 }
 </style>
+
+
 
 
 

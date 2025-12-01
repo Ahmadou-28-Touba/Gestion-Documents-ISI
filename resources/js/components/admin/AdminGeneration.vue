@@ -184,9 +184,38 @@ export default {
       this.submitting = true
       this.resultats = null
       try {
-        const res = await axios.post('admin/documents/generer-batch', this.buildPayload())
-        this.resultats = res.data?.data || null
-        if (!this.resultats) alert('Aucun résultat retourné')
+        // Cas particulier : bulletin de notes + publication = utiliser l'API dédiée pour tous les étudiants
+        if (this.form.type === 'bulletin_notes' && this.form.publication) {
+          const common = this.parseDonnees() || {}
+
+          // Construction du payload pour l'API /documents/publier-bulletins
+          const now = new Date()
+          const year = now.getFullYear()
+          const month = now.getMonth() + 1
+          const defaultAnnee = month >= 9 ? `${year}-${year + 1}` : `${year - 1}-${year}`
+
+          const payload = {
+            annee_scolaire: common.annee_scolaire || defaultAnnee,
+            trimestre: common.trimestre || '1er Trimestre',
+            periode: common.periode || null
+          }
+
+          const res = await axios.post('documents/publier-bulletins', payload)
+          if (res.data && res.data.success) {
+            this.resultats = res.data.resultats || null
+            if (!this.resultats) {
+              alert('Publication terminée, mais aucun détail retourné')
+            }
+          } else {
+            const msg = res.data?.message || 'Erreur lors de la publication des bulletins'
+            alert(msg)
+          }
+        } else {
+          // Comportement standard pour les autres types de documents
+          const res = await axios.post('admin/documents/generer-batch', this.buildPayload())
+          this.resultats = res.data?.data || null
+          if (!this.resultats) alert('Aucun résultat retourné')
+        }
       } catch (e) {
         console.error(e)
         const msg = e.response?.data?.message || 'Erreur lors de la génération'

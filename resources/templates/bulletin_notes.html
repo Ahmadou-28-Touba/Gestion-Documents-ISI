@@ -16,7 +16,7 @@
 <body>
   <div class="header">
     <div class="title">Bulletin de notes</div>
-    <div>{{ annee_univ ?? '' }} - {{ semestre ?? '' }}</div>
+    <div>{{ annee_scolaire ?? '' }} - {{ bulletin_notes.periode ?? '' }}</div>
   </div>
 
   <div>
@@ -28,26 +28,34 @@
     <thead>
       <tr>
         <th>Matière</th>
-        <th>Crédits</th>
-        <th>Note</th>
-        <th>Appréciation</th>
+        <th>Note moyenne</th>
+        <th>Détails</th>
       </tr>
     </thead>
     <tbody>
-      <!-- Exemple: itérer sur une liste -->
-      {% for m in matieres %}
+      <!-- Itération sur les matières construites depuis les notes -->
+      {% for m in bulletin_notes.matieres %}
       <tr>
-        <td>{{ m.nom }}</td>
-        <td style="text-align:center">{{ m.credits }}</td>
-        <td style="text-align:center">{{ m.note }}</td>
-        <td>{{ m.appreciation }}</td>
+        <td>{{ m.matiere ?? '' }}</td>
+        <td style="text-align:center">{{ m.moyenne ?? '' }}/20</td>
+        <td>
+          {% if m.notes is defined %}
+            {% for n in m.notes %}
+              <div>
+                <strong>{{ n.type_controle ?? '' }}</strong> : {{ n.valeur ?? '' }}/20
+                {% if n.date %} ({{ n.date }}){% endif %}
+                {% if n.commentaire %}<br><em>{{ n.commentaire }}</em>{% endif %}
+              </div>
+            {% endfor %}
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
         <th colspan="2">Moyenne générale</th>
-        <th colspan="2">{{ moyenne_generale ?? '' }}</th>
+        <th colspan="2">{{ bulletin_notes.moyenne_generale ?? '' }}</th>
       </tr>
     </tfoot>
   </table>

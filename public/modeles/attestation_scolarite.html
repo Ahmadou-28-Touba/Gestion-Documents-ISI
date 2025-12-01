@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Attestation de Scolarité - {{ etudiant_prenom }} {{ etudiant_nom }}</title>
+    <style>
+        @page { margin: 0; }
+        body { 
+            font-family: 'Times New Roman', Times, serif; 
+            line-height: 1.6; 
+            max-width: 210mm; 
+            margin: 20px auto; 
+            padding: 20px;
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 15px;
+        }
+        .logo { 
+            max-width: 120px; 
+            margin-bottom: 10px; 
+        }
+        h1 { 
+            color: #2c3e50; 
+            font-size: 20px; 
+            margin: 15px 0; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .content { 
+            margin: 30px 0;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        .footer { 
+            margin-top: 50px; 
+            font-size: 12px; 
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .signature { 
+            margin-top: 60px; 
+            text-align: right;
+        }
+        .signature-line { 
+            border-top: 1px solid #000; 
+            width: 300px; 
+            margin: 40px 0 5px auto;
+        }
+        .etablissement-info {
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .reference {
+            text-align: right;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .etudiant-info {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #2c3e50;
+        }
+        .etudiant-info p {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_etablissement }}" alt="Logo de l'établissement" class="logo">
+        <h1>attestation de scolarité</h1>
+        <div class="etablissement-info">
+            {{ nom_etablissement }}<br>
+            {{ adresse_etablissement }} - {{ code_postal_etablissement }} {{ ville_etablissement }}<br>
+            Tél : {{ telephone_etablissement }} - Email : {{ email_etablissement }}
+        </div>
+    </div>
+
+    <div class="reference">
+        Référence : {{ etudiant_numero }}/{{ date("Y") }}
+    </div>
+
+    <div class="content">
+        <p>Je soussigné(e), <strong>{{ directeur_nom }}</strong>, {{ directeur_poste }} de l'établissement <strong>{{ nom_etablissement }}</strong>,</p>
+        
+        <div class="etudiant-info">
+            <p><strong>Atteste que :</strong></p>
+            <p>Nom : <strong>{{ etudiant_nom }}</strong></p>
+            <p>Prénom : <strong>{{ etudiant_prenom }}</strong></p>
+            <p>Né(e) le : <strong>{{ etudiant_date_naissance }}</strong> à <strong>{{ etudiant_lieu_naissance }}</strong></p>
+            <p>Numéro d'étudiant : <strong>{{ etudiant_numero }}</strong></p>
+        </div>
+        
+        <p>est régulièrement inscrit(e) dans notre établissement pour l'année universitaire <strong>{{ annee_scolaire }}</strong>,</p>
+        
+        <p>en qualité d'étudiant(e) en <strong>{{ etudiant_annee }} année de {{ etudiant_filiere }}</strong></p>
+        
+        {{#if etudiant_groupe}}
+        <p>Groupe : <strong>{{ etudiant_groupe }}</strong></p>
+        {{/if}}
+        
+        <p>depuis le <strong>{{ etudiant_date_inscription }}</strong>.</p>
+        
+        <p>La présente attestation est délivrée à l'intéressé(e) pour servir et valoir ce que de droit.</p>
+        
+        <p>Fait à <strong>{{ ville_etablissement }}</strong>, le <strong>{{ date_emission }}</strong>.</p>
+    </div>
+
+    <div class="signature">
+        <p>Le {{ directeur_poste }},</p>
+        <div class="signature-line"></div>
+        <p><strong>{{ directeur_nom }}</strong></p>
+        <p>{{ directeur_poste }}</p>
+    </div>
+
+    <div class="footer">
+        <p><strong>{{ nom_etablissement }}</strong></p>
+        <p>{{ adresse_etablissement }} - {{ code_postal_etablissement }} {{ ville_etablissement }} - {{ pays_etablissement }}</p>
+        <p>Tél : {{ telephone_etablissement }} - Email : {{ email_etablissement }} - Site : {{ site_web_etablissement }}</p>
+    </div>
+</body>
+</html>

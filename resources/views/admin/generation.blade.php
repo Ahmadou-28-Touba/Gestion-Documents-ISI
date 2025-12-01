@@ -59,8 +59,9 @@
       <div class="grid" id="extraFields"></div>
     </div>
 
-    <div class="row">
+    <div class="row" style="gap: 12px;">
       <button id="generate">Générer le document</button>
+      <button id="publishAll" style="background-color: #4CAF50; color: white; border: none;">Publier pour tous les étudiants</button>
     </div>
     <div id="status" class="muted"></div>
     <pre id="output" style="display:none;"></pre>
@@ -94,6 +95,7 @@
     reloadBtn.onclick = loadModeles;
     modeleSelect.onchange = loadSchema;
     document.getElementById('generate').onclick = generateDoc;
+    document.getElementById('publishAll').onclick = publishToAllStudents;
     dateJourInput.valueAsDate = new Date();
 
     async function loadModeles() {
@@ -192,6 +194,56 @@
         wrap.appendChild(label); wrap.appendChild(input); container.appendChild(wrap);
       });
     })();
+
+    async function publishToAllStudents() {
+      const id = modeleSelect.value;
+      if (!id) {
+        statusDiv.textContent = 'Veuillez sélectionner un modèle';
+        return;
+      }
+      
+      const selected = modeleSelect.options[modeleSelect.selectedIndex];
+      const type = selected.dataset.type;
+      
+      if (!confirm(`Êtes-vous sûr de vouloir publier ce document pour TOUS les étudiants ?\nType: ${type}`)) {
+        return;
+      }
+      
+      statusDiv.textContent = 'Publication en cours pour tous les étudiants...';
+      outputPre.style.display = 'none';
+      
+      try {
+        const response = await fetch(apiBase + '/admin/documents/publier', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            type: type,
+            donnees: buildDonnees()
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Erreur lors de la publication');
+        }
+        
+        statusDiv.textContent = `Publication terminée ! ${result.data?.ok || 0} documents publiés avec succès.`;
+        if (result.data?.errors > 0) {
+          statusDiv.textContent += ` ${result.data.errors} erreurs.`;
+        }
+        
+        // Afficher les détails
+        outputPre.textContent = JSON.stringify(result, null, 2);
+        outputPre.style.display = 'block';
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        statusDiv.textContent = 'Erreur: ' + (error.message || 'Erreur inconnue');
+        outputPre.textContent = error.stack || error.toString();
+        outputPre.style.display = 'block';
+      }
+    }
 
     // Initial load
     loadModeles();

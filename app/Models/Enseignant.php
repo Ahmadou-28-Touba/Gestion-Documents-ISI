@@ -127,4 +127,9 @@ class Enseignant extends Model
     {
         return $this->validerAbsence($absenceId, $motifRefus);
     }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'enseignant_id');
+    }
 }

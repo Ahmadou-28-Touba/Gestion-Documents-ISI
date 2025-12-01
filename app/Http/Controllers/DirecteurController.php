@@ -231,14 +231,43 @@ class DirecteurController extends Controller
 
     private function getStatistiquesGenerales()
     {
+        // Limite d'éléments détaillés par groupe/type (paramètre optionnel côté UI)
+        $limitPerGroup = (int) request()->query('limit', 50);
+
+        // Comptages agrégés
+        $usersCounts = Utilisateur::selectRaw('role, COUNT(*) as count')
+            ->groupBy('role')
+            ->get()
+            ->pluck('count', 'role')
+            ->toArray();
+
+        $docsCounts = Document::selectRaw('type, COUNT(*) as count')
+            ->groupBy('type')
+            ->get()
+            ->pluck('count', 'type')
+            ->toArray();
+
+        // Listes détaillées pour affichage (groupées + limitées)
+        $usersList = Utilisateur::select('id','nom','prenom','email','role','created_at')
+            ->orderBy('created_at','desc')
+            ->get()
+            ->groupBy('role')
+            ->map(function($col) use ($limitPerGroup) { return $col->take($limitPerGroup)->values(); })
+            ->toArray();
+
+        $docsList = Document::with(['etudiant.utilisateur:id,nom,prenom'])
+            ->select('id','type','nom','date_generation','etudiant_id','est_public')
+            ->orderByDesc('date_generation')
+            ->get()
+            ->groupBy('type')
+            ->map(function($col) use ($limitPerGroup) { return $col->take($limitPerGroup)->values(); })
+            ->toArray();
+
         return [
             'utilisateurs' => [
                 'total' => Utilisateur::count(),
-                'par_role' => Utilisateur::selectRaw('role, COUNT(*) as count')
-                    ->groupBy('role')
-                    ->get()
-                    ->pluck('count', 'role')
-                    ->toArray(),
+                'par_role' => $usersCounts,
+                'listes_par_role' => $usersList,
                 'nouveaux_ce_mois' => Utilisateur::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
                     ->count()
@@ -247,11 +276,8 @@ class DirecteurController extends Controller
                 'total' => Document::count(),
                 'publics' => Document::where('est_public', true)->count(),
                 'archives' => Document::where('est_public', false)->count(),
-                'par_type' => Document::selectRaw('type, COUNT(*) as count')
-                    ->groupBy('type')
-                    ->get()
-                    ->pluck('count', 'type')
-                    ->toArray(),
+                'par_type' => $docsCounts,
+                'listes_par_type' => $docsList,
                 'ce_mois' => Document::whereMonth('date_generation', now()->month)
                     ->whereYear('date_generation', now()->year)
                     ->count()

@@ -68,6 +68,14 @@
           </div>
         </div>
       </div>
+      <div class="col-md-3" v-if="moyenneGenerale !== null">
+        <div class="card bg-primary text-white">
+          <div class="card-body text-center">
+            <h4>{{ moyenneGenerale.toFixed(2) }}/20</h4>
+            <p class="mb-0">Moyenne générale</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Actions rapides -->
@@ -82,29 +90,23 @@
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-md-3 mb-3">
+              <div class="col-md-4 mb-3">
                 <button class="btn btn-outline-warning w-100" @click="showAbsenceModal = true">
                   <i class="fas fa-calendar-times me-2"></i>
                   Déclarer une absence
                 </button>
               </div>
-              <div class="col-md-3 mb-3">
+              <div class="col-md-4 mb-3">
                 <router-link to="/absences" class="btn btn-outline-info w-100">
                   <i class="fas fa-list me-2"></i>
                   Mes absences
                 </router-link>
               </div>
-              <div class="col-md-3 mb-3">
-                <router-link to="/documents" class="btn btn-outline-success w-100">
+              <div class="col-md-4 mb-3">
+                <router-link to="/etudiant/documents" class="btn btn-outline-success w-100">
                   <i class="fas fa-file-alt me-2"></i>
                   Mes documents
                 </router-link>
-              </div>
-              <div class="col-md-3 mb-3">
-                <button class="btn btn-outline-primary w-100" @click="loadRecentDocuments">
-                  <i class="fas fa-refresh me-2"></i>
-                  Actualiser
-                </button>
               </div>
             </div>
           </div>
@@ -112,7 +114,7 @@
       </div>
     </div>
 
-    <!-- Absences récentes -->
+    <!-- Absences récentes + Mes notes -->
     <div class="row mb-4">
       <div class="col-md-6">
         <div class="card">
@@ -153,48 +155,47 @@
         </div>
       </div>
 
-      <!-- Documents récents -->
+      <!-- Mes notes -->
       <div class="col-md-6">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
-              <i class="fas fa-file-alt me-2"></i>
-              Documents récents
+              <i class="fas fa-clipboard-list me-2"></i>
+              Mes notes
             </h5>
-            <router-link to="/documents" class="btn btn-sm btn-success">
-              Voir tout
-            </router-link>
+            <button class="btn btn-sm btn-outline-secondary" @click="loadNotes">
+              <i class="fas fa-sync-alt"></i>
+            </button>
           </div>
           <div class="card-body">
-            <div v-if="recentDocuments && recentDocuments.length > 0">
-              <div class="list-group list-group-flush">
-                <div 
-                  v-for="document in recentDocuments" 
-                  :key="document.id"
-                  class="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <div>
-                    <h6 class="mb-1">{{ document.nom }}</h6>
-                    <p class="mb-1 text-muted">{{ document.type }}</p>
-                    <small class="text-muted">{{ formatDate(document.date_generation) }}</small>
-                  </div>
-                  <div>
-                    <button 
-                      class="btn btn-sm btn-outline-primary me-1" 
-                      @click="telechargerDocument(document.id)"
-                      title="Télécharger"
-                    >
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <span class="badge" :class="document.est_public ? 'badge-success' : 'badge-warning'">
-                      {{ document.est_public ? 'Public' : 'Archivé' }}
-                    </span>
-                  </div>
-                </div>
+            <div v-if="notes && notes.length > 0">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Matière</th>
+                      <th>Type</th>
+                      <th>Note</th>
+                      <th>Date</th>
+                      <th>Période</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="n in notes" :key="n.id">
+                      <td>{{ n.matiere || '-' }}</td>
+                      <td>{{ n.type_controle }}</td>
+                      <td>
+                        <span class="badge bg-primary">{{ Number(n.valeur).toFixed(2) }}/20</span>
+                      </td>
+                      <td>{{ formatDate(n.date) }}</td>
+                      <td>{{ n.periode || '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
             <div v-else class="text-muted">
-              Aucun document récent
+              Aucune note disponible
             </div>
           </div>
         </div>
@@ -365,6 +366,7 @@ export default {
       statistiques: null,
       recentAbsences: [],
       recentDocuments: [],
+      notes: [],
       showAbsenceModal: false,
       showProfilModal: false,
       absenceForm: {
@@ -380,13 +382,15 @@ export default {
         filiere: '',
         annee: ''
       },
-      today: new Date().toISOString().split('T')[0]
+      today: new Date().toISOString().split('T')[0],
+      moyenneGenerale: null
     }
   },
   mounted() {
     // S'assurer que le token est bien présent pour l'appel dashboard
     try { axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('auth_token')}` } catch {}
     this.loadDashboard()
+    this.loadNotes()
   },
   methods: {
     async loadDashboard() {
@@ -414,6 +418,25 @@ export default {
         const r = error.response
         const msg = r?.data?.message || error.message || 'Erreur lors du chargement du dashboard'
         this.$toast?.error?.(`Dashboard indisponible (HTTP ${r?.status || 'NA'})\n${msg}`)
+      }
+    },
+
+    async loadNotes() {
+      try {
+        const res = await axios.get('etudiant/notes')
+        this.notes = res.data?.data || []
+
+        if (this.notes.length > 0) {
+          const somme = this.notes.reduce((acc, n) => acc + Number(n.valeur || 0), 0)
+          this.moyenneGenerale = somme / this.notes.length
+        } else {
+          this.moyenneGenerale = null
+        }
+      } catch (error) {
+        console.error('Erreur chargement notes étudiant:', error)
+        const r = error.response
+        const msg = r?.data?.message || error.message || 'Erreur lors du chargement des notes'
+        this.$toast?.error?.(msg)
       }
     },
     

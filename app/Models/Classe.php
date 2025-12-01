@@ -25,4 +25,9 @@ class Classe extends Model
     {
         return $this->hasMany(Etudiant::class, 'classe_id');
     }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'classe_id');
+    }
 }

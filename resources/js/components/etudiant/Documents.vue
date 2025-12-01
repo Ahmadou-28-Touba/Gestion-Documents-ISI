@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2><i class="fas fa-file-alt me-2"></i>Mes Documents</h2>
-      <div class="d-flex gap-2">
+      <div>
         <select class="form-select" v-model="filters.type" @change="loadDocuments">
           <option value="">Tous les types</option>
           <option value="attestation_scolarite">Attestation de scolarité</option>
@@ -150,6 +150,8 @@ export default {
   }
 };
 </script>
+
+
 
 
 

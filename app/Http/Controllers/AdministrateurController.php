@@ -282,39 +282,164 @@ class AdministrateurController extends Controller
      */
     public function statistiques()
     {
-        $documentsParType = \App\Models\Document::selectRaw('type, COUNT(*) as count')
-            ->groupBy('type')
-            ->get()
-            ->pluck('count', 'type')
-            ->toArray();
+        \Log::info('=== DÉBUT DE LA MÉTHODE STATISTIQUES ===');
+        
+        // Activer la journalisation des requêtes SQL pour le débogage
+        \DB::enableQueryLog();
+        
+        try {
+            // Initialisation des variables
+            $totalDocuments = 0;
+            $totalUtilisateurs = 0;
+            $absencesEnAttente = 0;
+            $modelesActifs = 0;
+            
+            // Vérifier la connexion à la base de données
+            try {
+                $pdo = \DB::connection()->getPdo();
+                \Log::info('✅ Connexion à la base de données réussie');
+                \Log::info('🔌 Base de données: ' . $pdo->getAttribute(\PDO::ATTR_CONNECTION_STATUS));
+            } catch (\Exception $e) {
+                \Log::error('❌ Erreur de connexion à la base de données: ' . $e->getMessage());
+                // On continue malgré l'erreur de connexion pour essayer de récupérer les données
+            }
 
-        $utilisateursParRole = \App\Models\Utilisateur::selectRaw('role, COUNT(*) as count')
-            ->groupBy('role')
-            ->get()
-            ->pluck('count', 'role')
-            ->toArray();
+            // 1. Nombre total de documents
+            try {
+                $totalDocuments = \DB::table('documents')->count();
+                \Log::info('📄 Total documents: ' . $totalDocuments);
+            } catch (\Exception $e) {
+                \Log::warning('⚠️ Erreur lors du comptage des documents: ' . $e->getMessage());
+                $totalDocuments = 0;
+            }
 
-        $stats = [
-            'documents' => [
-                'total' => \App\Models\Document::count(),
-                'par_type' => $documentsParType,
-            ],
-            'utilisateurs' => [
-                'total' => \App\Models\Utilisateur::count(),
-                'par_role' => $utilisateursParRole,
-            ],
-            'absences' => [
-                'en_attente' => \App\Models\Absence::enAttente()->count(),
-            ],
-            'modeles' => [
-                'actifs' => \App\Models\ModeleDocument::actifs()->count(),
-            ],
-        ];
+            // 2. Nombre total d'utilisateurs
+            try {
+                // Essayer d'abord la table 'utilisateurs'
+                try {
+                    $totalUtilisateurs = \DB::table('utilisateurs')->count();
+                    \Log::info('👥 Total utilisateurs (utilisateurs): ' . $totalUtilisateurs);
+                } catch (\Exception $e) {
+                    // Si la table 'utilisateurs' n'existe pas, essayer 'users'
+                    $totalUtilisateurs = \DB::table('users')->count();
+                    \Log::info('👥 Total utilisateurs (users): ' . $totalUtilisateurs);
+                }
+            } catch (\Exception $e) {
+                \Log::error('❌ Erreur lors du comptage des utilisateurs: ' . $e->getMessage());
+                $totalUtilisateurs = 0;
+            }
 
-        return response()->json([
-            'success' => true,
-            'data' => $stats,
-        ]);
+            // 3. Nombre d'absences en attente
+            try {
+                $absencesEnAttente = \DB::table('absences')
+                    ->where('statut', 'en_attente')
+                    ->count();
+                \Log::info('⏳ Absences en attente: ' . $absencesEnAttente);
+            } catch (\Exception $e) {
+                \Log::warning('⚠️ Erreur lors du comptage des absences en attente: ' . $e->getMessage());
+                $absencesEnAttente = 0;
+            }
+
+            // 4. Nombre de modèles actifs
+            try {
+                $modelesActifs = \DB::table('modele_documents')
+                    ->where('est_actif', true)
+                    ->count();
+                \Log::info('📝 Modèles actifs: ' . $modelesActifs);
+            } catch (\Exception $e) {
+                \Log::warning('⚠️ Erreur lors du comptage des modèles actifs: ' . $e->getMessage());
+                $modelesActifs = 0;
+            }
+
+            // 5. Documents par type
+            $documentsParType = [];
+            try {
+                $documentsParType = \DB::table('documents')
+                    ->select('type', \DB::raw('COUNT(*) as total'))
+                    ->groupBy('type')
+                    ->orderBy('type')
+                    ->get()
+                    ->map(function ($row) {
+                        return [
+                            'type' => $row->type,
+                            'total' => (int) $row->total,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+                \Log::info('📄 Documents par type calculés', $documentsParType);
+            } catch (\Exception $e) {
+                \Log::warning('⚠️ Erreur lors du calcul des documents par type: ' . $e->getMessage());
+                $documentsParType = [];
+            }
+
+            // 6. Utilisateurs par rôle
+            $utilisateursParRole = [];
+            try {
+                try {
+                    $utilisateursParRole = \DB::table('utilisateurs')
+                        ->select('role', \DB::raw('COUNT(*) as total'))
+                        ->groupBy('role')
+                        ->orderBy('role')
+                        ->get();
+                } catch (\Exception $e) {
+                    // fallback sur table users si nécessaire
+                    $utilisateursParRole = \DB::table('users')
+                        ->select('role', \DB::raw('COUNT(*) as total'))
+                        ->groupBy('role')
+                        ->orderBy('role')
+                        ->get();
+                }
+
+                $utilisateursParRole = collect($utilisateursParRole)
+                    ->map(function ($row) {
+                        return [
+                            'role' => $row->role,
+                            'total' => (int) $row->total,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+
+                \Log::info('👥 Utilisateurs par rôle calculés', $utilisateursParRole);
+            } catch (\Exception $e) {
+                \Log::warning('⚠️ Erreur lors du calcul des utilisateurs par rôle: ' . $e->getMessage());
+                $utilisateursParRole = [];
+            }
+
+            // Construction de la réponse simplifiée
+            $stats = [
+                'documents' => (int) $totalDocuments,
+                'utilisateurs' => (int) $totalUtilisateurs,
+                'absences_en_attente' => (int) $absencesEnAttente,
+                'modeles_actifs' => (int) $modelesActifs,
+                'documents_par_type' => $documentsParType,
+                'utilisateurs_par_role' => $utilisateursParRole,
+                'timestamp' => now()->toDateTimeString(),
+            ];
+                
+            // Journalisation de la réponse
+            \Log::info('📊 Statistiques générées:', $stats);
+            \Log::info('📝 Requêtes SQL exécutées:', \DB::getQueryLog());
+            \Log::info('=== FIN DE LA MÉTHODE STATISTIQUES ===');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Statistiques récupérées avec succès',
+                'data' => $stats,
+                'timestamp' => now()->toDateTimeString()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans la méthode statistiques: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la récupération des statistiques.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

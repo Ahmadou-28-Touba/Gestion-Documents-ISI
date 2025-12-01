@@ -129,16 +129,41 @@
           </div>
           <div class="card-body">
             <div v-if="statistiques?.utilisateurs?.par_role">
-              <div 
-                v-for="(count, role) in statistiques.utilisateurs.par_role" 
-                :key="role"
-                class="d-flex justify-content-between align-items-center mb-2"
-              >
-                <span class="badge" :class="getRoleBadgeClass(role)">
-                  {{ getRoleLabel(role) }}
-                </span>
-                <span class="fw-bold">{{ count }}</span>
+
+
+              <div v-if="statistiques?.utilisateurs?.listes_par_role" class="mt-3">
+                <div v-for="(users, role) in statistiques.utilisateurs.listes_par_role" :key="'list-'+role" class="mb-3">
+                  <h6 class="mb-2">
+                    <span class="badge" :class="getRoleBadgeClass(role)">{{ getRoleLabel(role) }}</span>
+                    <small class="text-muted ms-2">(derniers)</small>
+                  </h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                      <thead>
+                        <tr>
+                          <th>Nom</th>
+                          <th>Prénom</th>
+                          <th>Rôle</th>
+                          <th>Email</th>
+                          <th>Créé le</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="u in users" :key="u.id">
+                          <td>{{ u.nom }}</td>
+                          <td>{{ u.prenom }}</td>
+                          <td>
+                            <span class="badge" :class="getRoleBadgeClass(u.role)">{{ getRoleLabel(u.role) }}</span>
+                          </td>
+                          <td><small>{{ u.email }}</small></td>
+                          <td><small>{{ formatDate(u.created_at) }}</small></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
+
             </div>
             <div v-else class="text-muted">
               Aucune donnée disponible
@@ -158,14 +183,47 @@
           </div>
           <div class="card-body">
             <div v-if="statistiques?.documents?.par_type">
-              <div 
-                v-for="(count, type) in statistiques.documents.par_type" 
-                :key="type"
-                class="d-flex justify-content-between align-items-center mb-2"
-              >
-                <span class="badge badge-primary">{{ type }}</span>
-                <span class="fw-bold">{{ count }}</span>
+
+
+              <div v-if="statistiques?.documents?.listes_par_type" class="mt-3">
+                <div v-for="(docs, type) in statistiques.documents.listes_par_type" :key="'docs-'+type" class="mb-3">
+                  <h6 class="mb-2">
+                    <span class="badge bg-primary">{{ type }}</span>
+                    <small class="text-muted ms-2">(derniers)</small>
+                  </h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                      <thead>
+                        <tr>
+                          <th>Nom</th>
+                          <th>Type</th>
+                          <th>Utilisateur</th>
+                          <th>Rôle</th>
+                          <th>Date</th>
+                          <th>Statut</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="d in docs" :key="d.id">
+                          <td>{{ d.nom }}</td>
+                          <td><small>{{ (d.type === 'emploi_temps') ? 'emploi_du_temps' : (d.type || '-') }}</small></td>
+                          <td><small>{{ d.etudiant?.utilisateur?.nom }} {{ d.etudiant?.utilisateur?.prenom }}</small></td>
+                          <td>
+                            <span class="badge" :class="getRoleBadgeClass(d.etudiant?.utilisateur?.role)">{{ getRoleLabel(d.etudiant?.utilisateur?.role) }}</span>
+                          </td>
+                          <td><small>{{ formatDate(d.date_generation) }}</small></td>
+                          <td>
+                            <span class="badge" :class="d.est_public ? 'bg-success' : 'bg-warning'">
+                              {{ d.est_public ? 'Public' : 'Archivé' }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
+
             </div>
             <div v-else class="text-muted">
               Aucune donnée disponible
@@ -198,22 +256,16 @@
                       <th>Type</th>
                       <th>Utilisateur</th>
                       <th>Date</th>
-                      <th>Statut</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="doc in documentsRecents" :key="doc.id">
                       <td>{{ doc.nom }}</td>
                       <td>
-                        <span class="badge badge-info">{{ doc.type }}</span>
+                        <span class="badge bg-info">{{ ((doc.type || doc.modele_document?.type) === 'emploi_temps') ? 'emploi_du_temps' : (doc.type || doc.modele_document?.type || '-') }}</span>
                       </td>
-                      <td>{{ doc.utilisateur?.nom }} {{ doc.utilisateur?.prenom }}</td>
+                      <td>{{ doc.etudiant?.utilisateur?.nom }} {{ doc.etudiant?.utilisateur?.prenom }}</td>
                       <td>{{ formatDate(doc.date_generation) }}</td>
-                      <td>
-                        <span class="badge" :class="doc.est_public ? 'badge-success' : 'badge-warning'">
-                          {{ doc.est_public ? 'Public' : 'Archivé' }}
-                        </span>
-                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -261,8 +313,8 @@
                         {{ formatDate(absence.date_debut) }} - {{ formatDate(absence.date_fin) }}
                       </td>
                       <td>
-                        <span class="badge" :class="getStatutBadgeClass(absence.statut)">
-                          {{ getStatutLabel(absence.statut) }}
+                        <span class="badge" :class="absence.statut === 'validee' ? 'bg-success' : (absence.statut === 'refusee' ? 'bg-danger' : 'bg-warning')">
+                          {{ absence.statut === 'validee' ? 'Validée' : (absence.statut === 'refusee' ? 'Refusée' : 'En attente') }}
                         </span>
                       </td>
                       <td>{{ formatDate(absence.date_declaration) }}</td>
@@ -346,7 +398,7 @@
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
                       <span>Refusées</span>
-                      <span class="badge badge-danger">{{ statistiques.absences?.refusees || 0 }}</span>
+                      <span class="badge bg-danger">{{ statistiques.absences?.refusees || 0 }}</span>
                     </li>
                   </ul>
                 </div>
@@ -461,6 +513,8 @@ export default {
       absencesRecentes: [],
       showStatistiquesModal: false,
       showProfilModal: false,
+      showDetailsUsers: true,
+      showDetailsDocs: true,
       profilForm: {
         nom: '',
         prenom: '',

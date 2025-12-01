@@ -62,6 +62,11 @@ class Etudiant extends Model
         return $this->hasMany(Document::class);
     }
 
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'etudiant_id');
+    }
+
     // Méthodes métier
     public function consulterDocuments()
     {
