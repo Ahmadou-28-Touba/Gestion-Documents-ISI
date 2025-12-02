@@ -2,6 +2,10 @@
   <div class="container py-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h1 class="h4 mb-0">Mon emploi du temps</h1>
+      <router-link to="/enseignant-dashboard" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>
+        Retour au tableau de bord
+      </router-link>
     </div>
 
     <div class="card shadow-sm">

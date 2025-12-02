@@ -1,9 +1,17 @@
 <template>
   <div class="container-fluid">
-    <h2 class="mb-4">
-      <i class="fas fa-check-circle me-2"></i>
-      Validation des Absences
-    </h2>
+    <div class="row mb-4">
+      <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">
+          <i class="fas fa-check-circle me-2"></i>
+          Validation des Absences
+        </h2>
+        <router-link to="/enseignant-dashboard" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-arrow-left me-1"></i>
+          Retour au tableau de bord
+        </router-link>
+      </div>
+    </div>
     
     <div class="card">
       <div class="card-body">

@@ -28,6 +28,8 @@ import AdminUtilisateurs from '../components/admin/AdminUtilisateurs.vue';
 import EtudiantDashboard from '../components/etudiant/EtudiantDashboard.vue';
 import EnseignantDashboard from '../components/enseignant/EnseignantDashboard.vue';
 import GestionNotesEnseignant from '../components/enseignant/GestionNotesEnseignant.vue';
+import ClassesEnseignant from '../components/enseignant/ClassesEnseignant.vue';
+import MatieresEnseignant from '../components/enseignant/MatieresEnseignant.vue';
 import DirecteurDashboard from '../components/directeur/DirecteurDashboard.vue';
 import EmploiDuTempsEnseignant from '../components/enseignant/EmploiDuTemps.vue';
 
@@ -172,6 +174,18 @@ const routes = [
     path: '/enseignant/notes',
     name: 'GestionNotesEnseignant',
     component: GestionNotesEnseignant,
+    meta: { requiresAuth: true, role: 'enseignant' }
+  },
+  {
+    path: '/enseignant/classes',
+    name: 'ClassesEnseignant',
+    component: ClassesEnseignant,
+    meta: { requiresAuth: true, role: 'enseignant' }
+  },
+  {
+    path: '/enseignant/matieres',
+    name: 'MatieresEnseignant',
+    component: MatieresEnseignant,
     meta: { requiresAuth: true, role: 'enseignant' }
   },
   {

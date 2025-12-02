@@ -9,57 +9,6 @@
       </div>
     </div>
 
-    <!-- Classes gérées -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-              <i class="fas fa-users me-2"></i>
-              Classes gérées
-            </h5>
-          </div>
-          <div class="card-body">
-            <div v-if="classes && classes.length">
-              <span v-for="c in classes" :key="c.id" class="badge bg-secondary me-2 mb-2">
-                {{ c.label || (c.filiere + ' ' + c.annee + (c.groupe ? ' (' + c.groupe + ')' : '')) }}
-              </span>
-            </div>
-            <div v-else class="text-muted">Aucune classe rattachée</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- (section Notes déplacée vers la page dédiée Gestion des notes) -->
-
-
-    <!-- Matières enseignées -->
-    <div class="row mb-4" v-if="enseignant">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">
-              <i class="fas fa-book me-2"></i>
-              Matières enseignées
-            </h5>
-          </div>
-          <div class="card-body">
-            <div v-if="Array.isArray(enseignant.matieres_enseignees) && enseignant.matieres_enseignees.length">
-              <span
-                v-for="(m, idx) in enseignant.matieres_enseignees"
-                :key="idx"
-                class="badge bg-primary me-2 mb-2"
-              >
-                {{ m }}
-              </span>
-            </div>
-            <div v-else class="text-muted">Aucune matière renseignée</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Informations enseignant -->
     <div class="row mb-4" v-if="enseignant">
       <div class="col-12">
@@ -150,9 +99,27 @@
                 </router-link>
               </div>
               <div class="col-md-3 mb-3">
+                <router-link to="/enseignant-emploi-du-temps" class="btn btn-outline-dark w-100">
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  Consulter emplois du temps
+                </router-link>
+              </div>
+              <div class="col-md-3 mb-3">
                 <router-link to="/enseignant/notes" class="btn btn-outline-primary w-100">
                   <i class="fas fa-pen me-2"></i>
                   Gestion des notes
+                </router-link>
+              </div>
+              <div class="col-md-3 mb-3">
+                <router-link to="/enseignant/classes" class="btn btn-outline-secondary w-100">
+                  <i class="fas fa-users me-2"></i>
+                  Classes gérées
+                </router-link>
+              </div>
+              <div class="col-md-3 mb-3">
+                <router-link to="/enseignant/matieres" class="btn btn-outline-secondary w-100">
+                  <i class="fas fa-book me-2"></i>
+                  Matières enseignées
                 </router-link>
               </div>
             </div>
@@ -502,6 +469,17 @@ export default {
     this.fetchEtudiants()
   },
   methods: {
+    scrollToSection(id) {
+      try {
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      } catch (e) {
+        console.error('Erreur scrollToSection:', e)
+      }
+    },
+
     async loadDashboard() {
       try {
         const response = await axios.get('enseignant/dashboard')
