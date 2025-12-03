@@ -30,11 +30,43 @@
       </div>
       <div class="col-md-6">
         <div class="card shadow-sm h-100">
-          <div class="card-header bg-light">Exports</div>
+          <div class="card-header bg-light d-flex align-items-center justify-content-between">
+            <div>
+              <h2 class="h6 mb-0">
+                <i class="fas fa-file-export me-2 text-primary"></i>
+                Exports des données
+              </h2>
+              <small class="text-muted">Téléchargez les données annuelles pour analyse dans Excel.</small>
+            </div>
+          </div>
           <div class="card-body">
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary" @click="exportAbsences()">Exporter absences (JSON)</button>
-              <button class="btn btn-outline-success" @click="exportDocuments()">Exporter documents (JSON)</button>
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <button class="btn btn-outline-primary w-100 text-start" @click="exportAbsences()">
+                  <div class="d-flex align-items-center">
+                    <div class="me-2">
+                      <i class="fas fa-calendar-times fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold">Absences (Excel)</div>
+                      <small class="text-muted">Liste détaillée des absences de l'année {{ annee }}.</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
+              <div class="col-12 col-sm-6">
+                <button class="btn btn-outline-success w-100 text-start" @click="exportDocuments()">
+                  <div class="d-flex align-items-center">
+                    <div class="me-2">
+                      <i class="fas fa-file-alt fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold">Documents (Excel)</div>
+                      <small class="text-muted">Documents générés pour l'année {{ annee }}.</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -223,7 +255,7 @@ export default {
     async exportAbsences() {
       try {
         const res = await axios.get('directeur/export/absences', { params: { date_debut: `${this.annee}-01-01`, date_fin: `${this.annee}-12-31` } })
-        this.downloadJson(res.data?.data || [], `absences_${this.annee}.json`)
+        this.downloadCsv(res.data?.data || [], `absences_${this.annee}.csv`)
       } catch (e) {
         console.error(e)
       }
@@ -231,13 +263,32 @@ export default {
     async exportDocuments() {
       try {
         const res = await axios.get('directeur/export/documents', { params: { date_debut: `${this.annee}-01-01`, date_fin: `${this.annee}-12-31` } })
-        this.downloadJson(res.data?.data || [], `documents_${this.annee}.json`)
+        this.downloadCsv(res.data?.data || [], `documents_${this.annee}.csv`)
       } catch (e) {
         console.error(e)
       }
     },
-    downloadJson(obj, filename) {
-      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' })
+    downloadCsv(rows, filename) {
+      if (!rows || !rows.length) {
+        return
+      }
+
+      const headers = Object.keys(rows[0])
+      const csvLines = []
+      csvLines.push(headers.join(';'))
+      rows.forEach(row => {
+        const line = headers.map(h => {
+          const value = row[h] != null ? String(row[h]) : ''
+          // Échapper les points-virgules et les retours à la ligne
+          if (value.includes(';') || value.includes('\n') || value.includes('\r') || value.includes('"')) {
+            return '"' + value.replace(/"/g, '""') + '"'
+          }
+          return value
+        }).join(';')
+        csvLines.push(line)
+      })
+
+      const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

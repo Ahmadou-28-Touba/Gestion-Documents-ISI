@@ -166,9 +166,7 @@
                         <tr v-for="u in users" :key="u.id">
                           <td>{{ u.nom }}</td>
                           <td>{{ u.prenom }}</td>
-                          <td>
-                            <span class="badge" :class="getRoleBadgeClass(u.role)">{{ getRoleLabel(u.role) }}</span>
-                          </td>
+                          <td>{{ getRoleLabel(role) || role || '-' }}</td>
                           <td><small>{{ u.email }}</small></td>
                           <td><small>{{ formatDate(u.created_at) }}</small></td>
                         </tr>

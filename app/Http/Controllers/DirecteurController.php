@@ -175,18 +175,23 @@ class DirecteurController extends Controller
     public function exportAbsences(Request $request)
     {
         $filtres = $request->only(['date_debut', 'date_fin', 'statut', 'filiere']);
-        
+
+        $dateDebut = $filtres['date_debut'] ?? null;
+        $dateFin   = $filtres['date_fin'] ?? null;
+        $statut    = $filtres['statut'] ?? null;
+        $filiere   = $filtres['filiere'] ?? null;
+
         $absences = Absence::with(['etudiant.utilisateur', 'enseignant.utilisateur'])
-            ->when($filtres['date_debut'], function ($query, $date) {
-                return $query->where('date_debut', '>=', $date);
+            ->when($dateDebut, function ($query, $dateDebut) {
+                return $query->where('date_debut', '>=', $dateDebut);
             })
-            ->when($filtres['date_fin'], function ($query, $date) {
-                return $query->where('date_fin', '<=', $date);
+            ->when($dateFin, function ($query, $dateFin) {
+                return $query->where('date_fin', '<=', $dateFin);
             })
-            ->when($filtres['statut'], function ($query, $statut) {
+            ->when($statut, function ($query, $statut) {
                 return $query->where('statut', $statut);
             })
-            ->when($filtres['filiere'], function ($query, $filiere) {
+            ->when($filiere, function ($query, $filiere) {
                 return $query->whereHas('etudiant', function ($q) use ($filiere) {
                     $q->where('filiere', $filiere);
                 });
@@ -202,21 +207,27 @@ class DirecteurController extends Controller
     public function exportDocuments(Request $request)
     {
         $filtres = $request->only(['date_debut', 'date_fin', 'type', 'utilisateur_id', 'filiere']);
-        
+
+        $dateDebut    = $filtres['date_debut'] ?? null;
+        $dateFin      = $filtres['date_fin'] ?? null;
+        $type         = $filtres['type'] ?? null;
+        $utilisateurId = $filtres['utilisateur_id'] ?? null;
+        $filiere      = $filtres['filiere'] ?? null;
+
         $documents = Document::with(['etudiant.utilisateur', 'modeleDocument'])
-            ->when($filtres['date_debut'], function ($query, $date) {
-                return $query->where('date_generation', '>=', $date);
+            ->when($dateDebut, function ($query, $dateDebut) {
+                return $query->where('date_generation', '>=', $dateDebut);
             })
-            ->when($filtres['date_fin'], function ($query, $date) {
-                return $query->where('date_generation', '<=', $date);
+            ->when($dateFin, function ($query, $dateFin) {
+                return $query->where('date_generation', '<=', $dateFin);
             })
-            ->when($filtres['type'], function ($query, $type) {
+            ->when($type, function ($query, $type) {
                 return $query->where('type', $type);
             })
-            ->when($filtres['utilisateur_id'], function ($query, $userId) {
-                return $query->where('etudiant_id', $userId);
+            ->when($utilisateurId, function ($query, $utilisateurId) {
+                return $query->where('etudiant_id', $utilisateurId);
             })
-            ->when($filtres['filiere'], function ($query, $filiere) {
+            ->when($filiere, function ($query, $filiere) {
                 return $query->whereHas('etudiant', function ($q) use ($filiere) {
                     $q->where('filiere', $filiere);
                 });
