@@ -89,13 +89,13 @@
               <div class="col-md-3 mb-3">
                 <button class="btn btn-outline-primary w-100" @click="goToStatistiques('documents')">
                   <i class="fas fa-chart-bar me-2"></i>
-                  Consulter les statistiques sur les documents
+                  Statistiques documents
                 </button>
               </div>
               <div class="col-md-3 mb-3">
                 <button class="btn btn-outline-primary w-100" @click="goToStatistiques('absences')">
                   <i class="fas fa-chart-area me-2"></i>
-                  Consulter les statistiques sur les absences
+                  Statistiques absences
                 </button>
               </div>
               <div class="col-md-3 mb-3">
@@ -108,6 +108,20 @@
                 <button class="btn btn-outline-info w-100" @click="goToRapports">
                   <i class="fas fa-file-export me-2"></i>
                   Exporter les données
+                </button>
+              </div>
+
+              <!-- Boutons absences -->
+              <div class="col-md-3 mb-3">
+                <button class="btn btn-outline-warning w-100" @click="goToAbsencesATraiter">
+                  <i class="fas fa-check-circle me-2"></i>
+                  Traiter les absences
+                </button>
+              </div>
+              <div class="col-md-3 mb-3">
+                <button class="btn btn-outline-secondary w-100" @click="goToToutesAbsences">
+                  <i class="fas fa-list me-2"></i>
+                  Consulter les absences
                 </button>
               </div>
             </div>
@@ -594,6 +608,14 @@ export default {
     },
     goToRapports() {
       this.$router.push({ name: 'DirecteurRapports' })
+    },
+    goToAbsencesATraiter() {
+      // Ouvre la page dédiée pour traiter les absences en attente
+      this.$router.push({ name: 'DirecteurAbsencesATraiter' })
+    },
+    goToToutesAbsences() {
+      // Ouvre la liste complète des absences
+      this.$router.push({ name: 'AbsenceList' })
     },
     
     downloadCSV(data, filename) {

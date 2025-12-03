@@ -78,14 +78,7 @@
               
               <!-- Actions pour enseignant -->
               <template v-if="user?.role === 'enseignant'">
-                <div class="col-md-6 mb-3">
-                  <router-link to="/absences-validation" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center p-3">
-                    <i class="fas fa-check-circle fa-2x mb-2"></i>
-                    <span>Valider les absences</span>
-                    <small class="text-muted">{{ pendingAbsences }} en attente</small>
-                  </router-link>
-                </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                   <router-link to="/profil" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center p-3">
                     <i class="fas fa-user-edit fa-2x mb-2"></i>
                     <span>Mon profil</span>

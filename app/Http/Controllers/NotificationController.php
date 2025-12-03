@@ -168,15 +168,14 @@ class NotificationController extends Controller
 
     public static function notifierAbsenceValidee($absence)
     {
-        // Notifier l'étudiant
+        // Notifier l'étudiant (validation par la direction)
         self::creerNotification(
             $absence->etudiant->utilisateur_id,
             'absence_validee',
             'Absence validée',
-            "Votre absence du {$absence->date_debut} au {$absence->date_fin} a été validée par {$absence->enseignant->utilisateur->nom} {$absence->enseignant->utilisateur->prenom}",
+            "Votre absence du {$absence->date_debut} au {$absence->date_fin} a été validée par la direction.",
             [
                 'absence_id' => $absence->id,
-                'enseignant_id' => $absence->enseignant_id,
                 'date_debut' => $absence->date_debut,
                 'date_fin' => $absence->date_fin
             ]
@@ -185,15 +184,14 @@ class NotificationController extends Controller
 
     public static function notifierAbsenceRefusee($absence)
     {
-        // Notifier l'étudiant
+        // Notifier l'étudiant (refus par la direction)
         self::creerNotification(
             $absence->etudiant->utilisateur_id,
             'absence_refusee',
             'Absence refusée',
-            "Votre absence du {$absence->date_debut} au {$absence->date_fin} a été refusée par {$absence->enseignant->utilisateur->nom} {$absence->enseignant->utilisateur->prenom}",
+            "Votre absence du {$absence->date_debut} au {$absence->date_fin} a été refusée par la direction.",
             [
                 'absence_id' => $absence->id,
-                'enseignant_id' => $absence->enseignant_id,
                 'date_debut' => $absence->date_debut,
                 'date_fin' => $absence->date_fin,
                 'motif_refus' => $absence->motif_refus

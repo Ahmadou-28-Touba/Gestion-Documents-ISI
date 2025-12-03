@@ -442,9 +442,25 @@ export default {
     }
   },
   mounted() {
-    this.loadAbsences()
     this.loadStatuts()
     this.loadStatistiques()
+
+    // Initialiser le filtre à partir de l'URL (?statut=en_attente)
+    let statut = ''
+    if (this.$route && this.$route.query && this.$route.query.statut) {
+      statut = this.$route.query.statut
+    }
+    if (statut) {
+      this.filters.statut = statut
+    }
+
+    this.loadAbsences()
+  },
+  watch: {
+    '$route.query.statut'(newVal) {
+      this.filters.statut = newVal || ''
+      this.loadAbsences()
+    }
   },
   methods: {
     async loadAbsences() {
@@ -630,11 +646,13 @@ export default {
     },
     
     canValidateAbsence(absence) {
-      return absence.statut === 'en_attente' && this.$store.getters.userRole === 'enseignant'
+      if (!absence) return false
+      return absence.statut === 'en_attente' && this.$store.getters.userRole === 'directeur'
     },
     
     canRejectAbsence(absence) {
-      return absence.statut === 'en_attente' && this.$store.getters.userRole === 'enseignant'
+      if (!absence) return false
+      return absence.statut === 'en_attente' && this.$store.getters.userRole === 'directeur'
     },
     
     canCancelAbsence(absence) {

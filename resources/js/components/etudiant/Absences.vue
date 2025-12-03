@@ -74,7 +74,12 @@
             <tbody>
               <tr v-for="absence in absences" :key="absence.id">
                 <td>{{ formatDateRange(absence.date_debut, absence.date_fin) }}</td>
-                <td>{{ absence.motif }}</td>
+                <td>
+                  <div>{{ absence.motif }}</div>
+                  <div v-if="absence.statut === 'refusee' && absence.motif_refus" class="mt-1 small text-danger">
+                    <strong>Motif de refus :</strong> {{ absence.motif_refus }}
+                  </div>
+                </td>
                 <td>
                   <span :class="getStatusBadgeClass(absence.statut)" class="badge">
                     {{ getStatusLabel(absence.statut) }}

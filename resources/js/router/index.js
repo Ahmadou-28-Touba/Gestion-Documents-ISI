@@ -3,6 +3,7 @@ import Login from '../components/Login.vue';
 import Dashboard from '../components/Dashboard.vue';
 import EtudiantAbsences from '../components/etudiant/Absences.vue';
 import EtudiantDocuments from '../components/etudiant/Documents.vue';
+import EtudiantNotes from '../components/etudiant/NotesEtudiant.vue';
 import DemanderDocument from '../components/etudiant/DemanderDocument.vue';
 import EnseignantValidation from '../components/enseignant/ValidationAbsences.vue';
 // Admin routes disabled for refactor
@@ -12,6 +13,7 @@ import AdminClasses from '../components/admin/AdminClasses.vue';
 // import AdminArchives from '../components/admin/AdminArchives.vue';
 import DirecteurStatistiques from '../components/directeur/Statistiques.vue';
 import DirecteurRapports from '../components/directeur/Rapports.vue';
+import DirecteurAbsencesATraiter from '../components/directeur/AbsencesATraiter.vue';
 import Profil from '../components/Profil.vue';
 // Nouveaux composants CRUD
 import DocumentList from '../components/DocumentList.vue';
@@ -63,6 +65,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'etudiant' }
   },
   {
+    path: '/etudiant/notes',
+    name: 'EtudiantNotes',
+    component: EtudiantNotes,
+    meta: { requiresAuth: true, role: 'etudiant' }
+  },
+  {
     path: '/etudiant/demander-document',
     name: 'DemanderDocument',
     component: DemanderDocument,
@@ -85,6 +93,12 @@ const routes = [
     path: '/statistiques',
     name: 'DirecteurStatistiques',
     component: DirecteurStatistiques,
+    meta: { requiresAuth: true, role: 'directeur' }
+  },
+  {
+    path: '/directeur/absences-a-traiter',
+    name: 'DirecteurAbsencesATraiter',
+    component: DirecteurAbsencesATraiter,
     meta: { requiresAuth: true, role: 'directeur' }
   },
   {

@@ -68,14 +68,6 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3" v-if="moyenneGenerale !== null">
-        <div class="card bg-primary text-white">
-          <div class="card-body text-center">
-            <h4>{{ moyenneGenerale.toFixed(2) }}/20</h4>
-            <p class="mb-0">Moyenne générale</p>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Actions rapides -->
@@ -90,19 +82,25 @@
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-md-4 mb-3">
+              <div class="col-md-3 mb-3">
                 <button class="btn btn-outline-warning w-100" @click="showAbsenceModal = true">
                   <i class="fas fa-calendar-times me-2"></i>
                   Déclarer une absence
                 </button>
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-3 mb-3">
                 <router-link to="/absences" class="btn btn-outline-info w-100">
                   <i class="fas fa-list me-2"></i>
                   Mes absences
                 </router-link>
               </div>
-              <div class="col-md-4 mb-3">
+              <div class="col-md-3 mb-3">
+                <router-link to="/etudiant/notes" class="btn btn-outline-primary w-100">
+                  <i class="fas fa-clipboard-list me-2"></i>
+                  Consulter mes notes
+                </router-link>
+              </div>
+              <div class="col-md-3 mb-3">
                 <router-link to="/etudiant/documents" class="btn btn-outline-success w-100">
                   <i class="fas fa-file-alt me-2"></i>
                   Mes documents
@@ -114,9 +112,9 @@
       </div>
     </div>
 
-    <!-- Absences récentes + Mes notes -->
+    <!-- Absences récentes -->
     <div class="row mb-4">
-      <div class="col-md-6">
+      <div class="col-md-12">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
@@ -150,52 +148,6 @@
             </div>
             <div v-else class="text-muted">
               Aucune absence récente
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mes notes -->
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-              <i class="fas fa-clipboard-list me-2"></i>
-              Mes notes
-            </h5>
-            <button class="btn btn-sm btn-outline-secondary" @click="loadNotes">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-          <div class="card-body">
-            <div v-if="notes && notes.length > 0">
-              <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                  <thead>
-                    <tr>
-                      <th>Matière</th>
-                      <th>Type</th>
-                      <th>Note</th>
-                      <th>Date</th>
-                      <th>Période</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="n in notes" :key="n.id">
-                      <td>{{ n.matiere || '-' }}</td>
-                      <td>{{ n.type_controle }}</td>
-                      <td>
-                        <span class="badge bg-primary">{{ Number(n.valeur).toFixed(2) }}/20</span>
-                      </td>
-                      <td>{{ formatDate(n.date) }}</td>
-                      <td>{{ n.periode || '-' }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div v-else class="text-muted">
-              Aucune note disponible
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ use App\Models\Enseignant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\NotificationController;
 
 class AbsenceController extends Controller
 {
@@ -284,33 +285,13 @@ class AbsenceController extends Controller
     {
         $absence = Absence::findOrFail($id);
 
-        // Vérifier les permissions (seuls les enseignants peuvent valider)
+        // Vérifier les permissions (seul le directeur peut valider)
         $utilisateur = Auth::user();
-        if (!$utilisateur->isEnseignant()) {
+        if (!$utilisateur->isDirecteur()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Seuls les enseignants peuvent valider les absences'
+                'message' => 'Seul le directeur peut valider les absences'
             ], 403);
-        }
-
-        $enseignant = $utilisateur->enseignant;
-        if (!$enseignant) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil enseignant non trouvé'
-            ], 404);
-        }
-
-        // Autorisation: l'enseignant ne peut traiter que sa filière (departement ↔ filiere)
-        $dep = trim((string) $enseignant->departement);
-        if ($dep !== '') {
-            $norm = mb_strtolower($dep, 'UTF-8');
-            if (!$absence->etudiant || mb_strtolower(trim((string) $absence->etudiant->filiere), 'UTF-8') !== $norm) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
-                ], 403);
-            }
         }
 
         if (!$absence->peutEtreValidee()) {
@@ -320,7 +301,11 @@ class AbsenceController extends Controller
             ], 422);
         }
 
-        $absence->valider($enseignant->id);
+        // On ne renseigne plus d'enseignant traitant : décision prise par le directeur
+        $absence->valider(null);
+
+        // Notifier l'étudiant que son absence a été validée
+        NotificationController::notifierAbsenceValidee($absence);
 
         return response()->json([
             'success' => true,
@@ -348,33 +333,13 @@ class AbsenceController extends Controller
 
         $absence = Absence::findOrFail($id);
 
-        // Vérifier les permissions (seuls les enseignants peuvent rejeter)
+        // Vérifier les permissions (seul le directeur peut rejeter)
         $utilisateur = Auth::user();
-        if (!$utilisateur->isEnseignant()) {
+        if (!$utilisateur->isDirecteur()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Seuls les enseignants peuvent rejeter les absences'
+                'message' => 'Seul le directeur peut rejeter les absences'
             ], 403);
-        }
-
-        $enseignant = $utilisateur->enseignant;
-        if (!$enseignant) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profil enseignant non trouvé'
-            ], 404);
-        }
-
-        // Autorisation: l'enseignant ne peut traiter que sa filière (departement ↔ filiere)
-        $dep = trim((string) $enseignant->departement);
-        if ($dep !== '') {
-            $norm = mb_strtolower($dep, 'UTF-8');
-            if (!$absence->etudiant || mb_strtolower(trim((string) $absence->etudiant->filiere), 'UTF-8') !== $norm) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Vous n'êtes pas autorisé à traiter cette absence (hors de votre filière)"
-                ], 403);
-            }
         }
 
         if (!$absence->peutEtreRejetee()) {
@@ -384,7 +349,11 @@ class AbsenceController extends Controller
             ], 422);
         }
 
-        $absence->rejeter($enseignant->id, $request->motif_refus);
+        // On ne renseigne plus d'enseignant traitant : décision prise par le directeur
+        $absence->rejeter(null, $request->motif_refus);
+
+        // Notifier l'étudiant que son absence a été refusée
+        NotificationController::notifierAbsenceRefusee($absence);
 
         return response()->json([
             'success' => true,

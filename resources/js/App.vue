@@ -39,12 +39,6 @@
                                 <router-link to="/enseignant-dashboard" class="nav-link">Dashboard</router-link>
                             </li>
                             <li class="nav-item">
-                                <router-link to="/absences-validation" class="nav-link">Validation des absences</router-link>
-                            </li>
-                            <li class="nav-item">
-                                <router-link to="/absences-list" class="nav-link">Absences (liste)</router-link>
-                            </li>
-                            <li class="nav-item">
                                 <router-link to="/enseignant-emploi-du-temps" class="nav-link">Emploi du temps</router-link>
                             </li>
                         </template>

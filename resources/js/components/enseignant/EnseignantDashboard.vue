@@ -38,8 +38,8 @@
       </div>
     </div>
 
-    <!-- Statistiques -->
-    <div class="row mb-4" v-if="statistiques">
+    <!-- Statistiques (désactivées car la gestion des absences est passée au directeur) -->
+    <div class="row mb-4" v-if="false && statistiques">
       <div class="col-md-3">
         <div class="card bg-warning text-white">
           <div class="card-body text-center">
@@ -52,7 +52,7 @@
         <div class="card bg-success text-white">
           <div class="card-body text-center">
             <h4>{{ statistiques.absences_validees_par_moi || 0 }}</h4>
-            <p class="mb-0">Validées par moi</p>
+            <p class="mb-0">Absences validées (historique)</p>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@
         <div class="card bg-danger text-white">
           <div class="card-body text-center">
             <h4>{{ statistiques.absences_refusees_par_moi || 0 }}</h4>
-            <p class="mb-0">Refusées par moi</p>
+            <p class="mb-0">Absences refusées (historique)</p>
           </div>
         </div>
       </div>
@@ -68,7 +68,7 @@
         <div class="card bg-info text-white">
           <div class="card-body text-center">
             <h4>{{ statistiques.absences_traitees_par_moi || 0 }}</h4>
-            <p class="mb-0">Traitées par moi</p>
+            <p class="mb-0">Absences traitées (historique)</p>
           </div>
         </div>
       </div>
@@ -86,18 +86,6 @@
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-md-3 mb-3">
-                <router-link to="/absences-validation" class="btn btn-outline-warning w-100">
-                  <i class="fas fa-check-circle me-2"></i>
-                  Valider absences
-                </router-link>
-              </div>
-              <div class="col-md-3 mb-3">
-                <router-link to="/absences-list" class="btn btn-outline-info w-100">
-                  <i class="fas fa-list me-2"></i>
-                  Consulter absences
-                </router-link>
-              </div>
               <div class="col-md-3 mb-3">
                 <router-link to="/enseignant-emploi-du-temps" class="btn btn-outline-dark w-100">
                   <i class="fas fa-calendar-alt me-2"></i>
@@ -129,7 +117,7 @@
     </div>
 
     <!-- Absences en attente -->
-    <div class="row mb-4">
+    <div class="row mb-4" v-if="false">
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
@@ -213,7 +201,7 @@
     </div>
 
     <!-- Absences traitées récemment -->
-    <div class="row mb-4">
+    <div class="row mb-4" v-if="false">
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
